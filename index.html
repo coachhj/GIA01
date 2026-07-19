@@ -298,9 +298,9 @@ function getDueIds(){
   return due.map(d=>d.id);
 }
 
-function buildTodaySession(){
-  const today = todayStr();
-  const due = getDueIds();
+function pickNextBatch(excludeIds){
+  const exclude = new Set(excludeIds||[]);
+  const due = getDueIds().filter(id=>!exclude.has(id));
   let ids = due.slice(0, DAILY_TARGET);
   if(ids.length < DAILY_TARGET){
     let need = DAILY_TARGET - ids.length;
@@ -310,8 +310,40 @@ function buildTodaySession(){
     state.cursor = c;
     ids = ids.concat(newIds);
   }
+  return ids;
+}
+
+function buildTodaySession(){
+  const today = todayStr();
+  const ids = pickNextBatch([]);
   state.session = { date: today, ids, idx:0, correct:0, wrong:0, perfect:0, completed: ids.length===0 };
   save();
+}
+
+function canExtendToday(){
+  if(!state.session || state.session.date!==todayStr()) return false;
+  return getDueIds().filter(id=>!state.session.ids.includes(id)).length>0 || state.cursor<TOTAL;
+}
+
+function extendSession(){
+  const s = state.session;
+  const more = pickNextBatch(s.ids);
+  if(more.length===0) return false;
+  s.ids = s.ids.concat(more);
+  s.completed = false;
+  save();
+  return true;
+}
+
+function recordHistory(){
+  const s = state.session;
+  const entry = {date: s.date, total: s.ids.length, correct: s.correct, wrong: s.wrong, perfect: s.perfect||0};
+  const idx = state.history.findIndex(h=>h.date===s.date);
+  if(idx>=0) state.history[idx] = entry;
+  else {
+    state.history.push(entry);
+    if(state.history.length>200) state.history.shift();
+  }
 }
 
 function gradeCurrent(action){
@@ -334,8 +366,7 @@ function gradeCurrent(action){
   s.idx++;
   if(s.idx >= s.ids.length){
     s.completed = true;
-    state.history.push({date: s.date, total: s.ids.length, correct: s.correct, wrong: s.wrong, perfect: s.perfect||0});
-    if(state.history.length>200) state.history.shift();
+    recordHistory();
   }
   save();
 }
@@ -385,8 +416,13 @@ function renderHome(){
   let ctaSmall = `오늘 ${DAILY_TARGET}개 학습`;
   if(state.session && state.session.date===todayStr()){
     if(state.session.completed){
-      ctaBig = '오늘 학습 완료 ✓';
-      ctaSmall = '한 번 더 복습하려면 눌러주세요';
+      if(canExtendToday()){
+        ctaBig = '20개 더 학습하기';
+        ctaSmall = `오늘 총 ${state.session.ids.length}개 완료 · 이어서 더 학습`;
+      } else {
+        ctaBig = '오늘 학습 완료 ✓';
+        ctaSmall = `오늘 학습할 수 있는 문장을 모두 마쳤습니다`;
+      }
     } else {
       ctaBig = '이어서 학습하기';
       ctaSmall = `${state.session.idx} / ${state.session.ids.length} 진행 중`;
@@ -430,9 +466,8 @@ function startStudy(){
   if(!state.session || state.session.date!==todayStr()){
     buildTodaySession();
   } else if(state.session.completed){
-    state.session.idx = 0; state.session.correct = 0; state.session.wrong = 0;
-    state.session.completed = state.session.ids.length===0;
-    save();
+    const extended = extendSession();
+    if(!extended){ showToast('오늘 학습할 수 있는 문장을 모두 마쳤습니다.'); return; }
   }
   if(state.session.ids.length===0){ showToast('오늘 학습할 문장이 없습니다.'); return; }
   revealed = false; showVoiceSettings = false;
@@ -542,6 +577,7 @@ function answer(action){
 
 function renderComplete(){
   const s = state.session;
+  const more = canExtendToday();
   app.innerHTML = `
     ${header('학습하기', true)}
     <main>
@@ -554,12 +590,27 @@ function renderComplete(){
           <div class="resultbox pf"><div class="n">${s.perfect||0}</div><div class="l">PERFECT</div></div>
         </div>
       </div>
-      <button class="cta" onclick="goHome()">
+      ${more ? `
+        <button class="cta" onclick="extendAndContinue()">
+          <div class="big">20개 더 학습하기</div>
+          <div class="small">오늘 학습을 이어서 계속합니다</div>
+        </button>
+      ` : `
+        <div class="emptynote">오늘 학습할 수 있는 문장을 모두 마쳤습니다. 내일 다시 확인해 보세요.</div>
+      `}
+      <button class="cta" style="${more? 'background:var(--panel-2);color:var(--text);box-shadow:none;border:1px solid var(--border);':''}" onclick="goHome()">
         <div class="big">홈으로</div>
         <div class="small">내일 또 만나요</div>
       </button>
     </main>
   `;
+}
+
+function extendAndContinue(){
+  const extended = extendSession();
+  if(!extended){ showToast('오늘 학습할 수 있는 문장을 모두 마쳤습니다.'); render(); return; }
+  revealed = false; showVoiceSettings = false;
+  render();
 }
 
 function renderStats(){
