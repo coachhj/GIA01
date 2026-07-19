@@ -88,6 +88,20 @@
   .cta:active{ transform:scale(0.98); }
   .cta .big{ font-family:'Noto Serif KR',serif; font-size:20px; font-weight:700; }
   .cta .small{ font-size:12px; opacity:0.75; font-weight:600; }
+  .cta.cta-alt{
+    background:var(--panel); color:var(--text); border:1.5px solid var(--gold);
+    box-shadow:none;
+  }
+  .cta[disabled]{ opacity:0.45; cursor:default; box-shadow:none; }
+  .cta[disabled]:active{ transform:none; }
+  .pastnote{ margin:14px 20px 0; font-size:11.5px; color:var(--gold); text-align:center; }
+  .homebar{ padding:26px 20px 4px; display:flex; justify-content:center; }
+  .homebtn{
+    background:none; border:1px solid var(--border); color:var(--text-soft);
+    font-size:12.5px; font-weight:700; letter-spacing:0.04em; padding:10px 22px;
+    border-radius:20px; cursor:pointer;
+  }
+  .homebtn:active{ background:var(--panel-2); color:var(--text); }
 
   .secrow{ display:flex; gap:10px; }
   .secbtn{ flex:1; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:13px 4px; text-align:center; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer; line-height:1.4; }
@@ -121,6 +135,8 @@
   }
   .ctrlbtn:active{ background:var(--border); }
   .ctrlbtn.playing{ background:var(--gold); color:#1B2743; border-color:var(--gold); }
+  .ctrlbtn[disabled]{ opacity:0.3; cursor:default; }
+  .ctrlbtn[disabled]:active{ background:var(--panel-2); }
 
   .gradebtns{ display:flex; gap:8px; padding:22px 20px 0; }
   .gradebtn{
@@ -234,8 +250,8 @@ function addDays(dateStr, n){
 function defaultState(){
   return {
     cursor: 0,
-    cards: {},
-    session: null,
+    cards: {},              // id -> {box, nextDue, retired}
+    sessions: { new: null, review: null }, // each: {date, mode, ids, idx, correct, wrong, perfect, completed, grades}
     history: [],
     voice: { rate: 1, auto: true },
   };
@@ -250,6 +266,9 @@ function load(){
     const parsed = JSON.parse(raw);
     const merged = Object.assign(defaultState(), parsed);
     merged.voice = Object.assign(defaultState().voice, parsed.voice||{});
+    if(!merged.sessions) merged.sessions = { new:null, review:null };
+    if(!('new' in merged.sessions)) merged.sessions.new = null;
+    if(!('review' in merged.sessions)) merged.sessions.review = null;
     return merged;
   }catch(e){ return defaultState(); }
 }
@@ -267,16 +286,14 @@ function showToast(msg){
 }
 
 /* ---------------- text-to-speech ---------------- */
-let ttsBusy = false;
 function speak(text, lang, rateOverride){
   if(!('speechSynthesis' in window)){ showToast('이 브라우저는 음성 재생을 지원하지 않습니다.'); return; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
   u.rate = rateOverride || state.voice.rate || 1;
-  ttsBusy = true;
-  u.onend = ()=>{ ttsBusy=false; updatePlayingClass(false); };
-  u.onerror = ()=>{ ttsBusy=false; updatePlayingClass(false); };
+  u.onend = ()=>{ updatePlayingClass(false); };
+  u.onerror = ()=>{ updatePlayingClass(false); };
   updatePlayingClass(true);
   window.speechSynthesis.speak(u);
 }
@@ -292,53 +309,83 @@ function getDueIds(){
   const due = [];
   for(const id in state.cards){
     const c = state.cards[id];
-    if(c.nextDue <= today) due.push({id:Number(id), due:c.nextDue});
+    if(!c.retired && c.nextDue <= today) due.push({id:Number(id), due:c.nextDue});
   }
   due.sort((a,b)=> a.due < b.due ? -1 : (a.due>b.due?1:0));
   return due.map(d=>d.id);
 }
 
-function pickNextBatch(excludeIds){
-  const exclude = new Set(excludeIds||[]);
-  const due = getDueIds().filter(id=>!exclude.has(id));
-  let ids = due.slice(0, DAILY_TARGET);
-  if(ids.length < DAILY_TARGET){
-    let need = DAILY_TARGET - ids.length;
-    let c = state.cursor;
-    const newIds = [];
-    while(need>0 && c < TOTAL){ newIds.push(c); c++; need--; }
-    state.cursor = c;
-    ids = ids.concat(newIds);
+function getAllReviewable(){
+  // every previously studied, non-retired sentence -- the full "누적 학습" pool,
+  // most overdue / soonest-due first so weaker cards surface earlier
+  const pool = [];
+  for(const id in state.cards){
+    const c = state.cards[id];
+    if(!c.retired) pool.push({id:Number(id), due:c.nextDue});
   }
+  pool.sort((a,b)=> a.due < b.due ? -1 : (a.due>b.due?1:0));
+  return pool.map(p=>p.id);
+}
+
+function pickNewOnly(n){
+  let c = state.cursor;
+  const ids = [];
+  while(ids.length<n && c<TOTAL){ ids.push(c); c++; }
+  state.cursor = c;
   return ids;
 }
+function pickReviewOnly(n, excludeIds){
+  const exclude = new Set(excludeIds||[]);
+  return getAllReviewable().filter(id=>!exclude.has(id)).slice(0,n);
+}
 
-function buildTodaySession(){
+function buildSession(mode){
   const today = todayStr();
-  const ids = pickNextBatch([]);
-  state.session = { date: today, ids, idx:0, correct:0, wrong:0, perfect:0, completed: ids.length===0 };
+  const ids = (mode==='new') ? pickNewOnly(DAILY_TARGET) : pickReviewOnly(DAILY_TARGET, []);
+  const sess = { date: today, mode, ids, idx:0, correct:0, wrong:0, perfect:0,
+                 completed: ids.length===0, grades: new Array(ids.length).fill(null) };
+  state.sessions[mode] = sess;
   save();
+  return sess;
 }
 
-function canExtendToday(){
-  if(!state.session || state.session.date!==todayStr()) return false;
-  return getDueIds().filter(id=>!state.session.ids.includes(id)).length>0 || state.cursor<TOTAL;
+function curSession(){ return state.sessions[activeMode]; }
+
+function canStartOrExtend(mode){
+  const s = state.sessions[mode];
+  if(!s || s.date!==todayStr()){
+    // no session today yet -- check if there's anything to start
+    if(mode==='new') return state.cursor<TOTAL;
+    return getAllReviewable().length>0;
+  }
+  if(!s.completed) return true; // resume in-progress
+  // completed -- check if more is available
+  if(mode==='new') return state.cursor<TOTAL;
+  return getAllReviewable().filter(id=>!s.ids.includes(id)).length>0;
 }
 
-function extendSession(){
-  const s = state.session;
-  const more = pickNextBatch(s.ids);
+function extendSession(mode){
+  const s = state.sessions[mode];
+  const more = (mode==='new') ? pickNewOnly(DAILY_TARGET) : pickReviewOnly(DAILY_TARGET, s.ids);
   if(more.length===0) return false;
   s.ids = s.ids.concat(more);
+  s.grades = s.grades.concat(new Array(more.length).fill(null));
   s.completed = false;
   save();
   return true;
 }
 
-function recordHistory(){
-  const s = state.session;
-  const entry = {date: s.date, total: s.ids.length, correct: s.correct, wrong: s.wrong, perfect: s.perfect||0};
-  const idx = state.history.findIndex(h=>h.date===s.date);
+function recordHistoryForToday(){
+  const today = todayStr();
+  let total=0, correct=0, wrong=0, perfect=0;
+  ['new','review'].forEach(mode=>{
+    const s = state.sessions[mode];
+    if(s && s.date===today){
+      total += s.ids.length; correct += s.correct; wrong += s.wrong; perfect += (s.perfect||0);
+    }
+  });
+  const idx = state.history.findIndex(h=>h.date===today);
+  const entry = {date: today, total, correct, wrong, perfect};
   if(idx>=0) state.history[idx] = entry;
   else {
     state.history.push(entry);
@@ -346,49 +393,77 @@ function recordHistory(){
   }
 }
 
-function gradeCurrent(action){
-  const s = state.session;
-  const id = s.ids[s.idx];
-  const today = s.date;
-  let c = state.cards[id] || {box:0, nextDue:today};
+function tallyAdjust(s, action, sign){
+  if(action==='perfect'){ s.correct += sign; s.perfect = (s.perfect||0)+sign; }
+  else if(action==='good'){ s.correct += sign; }
+  else if(action==='again'){ s.wrong += sign; }
+}
+
+function applyGrade(id, action, dateForSchedule){
+  let c = state.cards[id] || {box:0, nextDue:dateForSchedule, retired:false};
   if(action==='perfect'){
     c.box = BOX_INTERVALS.length-1;
-    s.correct++; s.perfect = (s.perfect||0)+1;
+    c.retired = true;
+    c.nextDue = '9999-12-31';
   } else if(action==='good'){
-    c.box = Math.min(c.box+1, BOX_INTERVALS.length-1);
-    s.correct++;
+    c.retired = false;
+    c.box = Math.min((c.box||0)+1, BOX_INTERVALS.length-1);
+    c.nextDue = addDays(dateForSchedule, BOX_INTERVALS[c.box]);
   } else {
+    c.retired = false;
     c.box = 0;
-    s.wrong++;
+    c.nextDue = addDays(dateForSchedule, BOX_INTERVALS[0]);
   }
-  c.nextDue = addDays(today, BOX_INTERVALS[c.box]);
   state.cards[id] = c;
+}
+
+function gradeCurrent(action){
+  const s = curSession();
+  const id = s.ids[s.idx];
+  applyGrade(id, action, s.date);
+  s.grades[s.idx] = action;
+  tallyAdjust(s, action, +1);
   s.idx++;
   if(s.idx >= s.ids.length){
     s.completed = true;
-    recordHistory();
+    recordHistoryForToday();
   }
+  save();
+}
+
+function regradeCard(pos, action){
+  const s = curSession();
+  const id = s.ids[pos];
+  const oldAction = s.grades[pos];
+  if(oldAction) tallyAdjust(s, oldAction, -1);
+  applyGrade(id, action, s.date);
+  s.grades[pos] = action;
+  tallyAdjust(s, action, +1);
+  if(s.completed) recordHistoryForToday();
   save();
 }
 
 function masteryStats(){
   const boxCounts = [0,0,0,0,0];
-  let studied = 0;
+  let studied = 0, retiredCount = 0;
   for(const id in state.cards){
     const c = state.cards[id];
     boxCounts[c.box]++;
     studied++;
+    if(c.retired) retiredCount++;
   }
   const notStarted = TOTAL - studied;
-  return {boxCounts, studied, notStarted};
+  return {boxCounts, studied, notStarted, retiredCount};
 }
 
 /* ---------------- rendering ---------------- */
 
 const app = document.getElementById('app');
 let route = 'home';
+let activeMode = 'new';
 let revealed = false;
 let showVoiceSettings = false;
+let viewIdx = null; // null = at current position (s.idx); otherwise browsing a previous card
 
 function render(){
   window.speechSynthesis && window.speechSynthesis.cancel();
@@ -407,27 +482,37 @@ function header(title, back, customRight){
   </header>`;
 }
 
+function modeButtonText(mode){
+  const s = state.sessions[mode];
+  const label = mode==='new' ? '새로 학습하기' : '복습하기';
+  const reviewableCount = getAllReviewable().length;
+  if(s && s.date===todayStr()){
+    if(!s.completed){
+      return { big: '이어서 학습하기', small: `${s.idx} / ${s.ids.length} 진행 중` };
+    }
+    if(canStartOrExtend(mode)){
+      return { big: mode==='new' ? '새 문장 더 학습하기' : '복습 더 하기',
+               small: `오늘 총 ${s.ids.length}개 완료 · 이어서 더` };
+    }
+    return { big: '오늘 완료 ✓', small: mode==='new' ? '오늘 새 문장을 모두 마쳤습니다' : '지금까지 학습한 문장을 모두 복습했습니다' };
+  }
+  if(mode==='review'){
+    return reviewableCount>0
+      ? { big: label, small: `지금까지 학습한 ${reviewableCount}개 중 복습` }
+      : { big: label, small: '아직 복습할 학습 내용이 없어요' };
+  }
+  return { big: label, small: `새 문장 ${DAILY_TARGET}개` };
+}
+
 function renderHome(){
-  const {boxCounts, studied, notStarted} = masteryStats();
+  const {boxCounts, studied, notStarted, retiredCount} = masteryStats();
   const dueCount = getDueIds().length;
   const maxCount = Math.max(1, ...boxCounts);
 
-  let ctaBig = '학습하기';
-  let ctaSmall = `오늘 ${DAILY_TARGET}개 학습`;
-  if(state.session && state.session.date===todayStr()){
-    if(state.session.completed){
-      if(canExtendToday()){
-        ctaBig = '20개 더 학습하기';
-        ctaSmall = `오늘 총 ${state.session.ids.length}개 완료 · 이어서 더 학습`;
-      } else {
-        ctaBig = '오늘 학습 완료 ✓';
-        ctaSmall = `오늘 학습할 수 있는 문장을 모두 마쳤습니다`;
-      }
-    } else {
-      ctaBig = '이어서 학습하기';
-      ctaSmall = `${state.session.idx} / ${state.session.ids.length} 진행 중`;
-    }
-  }
+  const newInfo = modeButtonText('new');
+  const reviewInfo = modeButtonText('review');
+  const newDisabled = !canStartOrExtend('new') && !(state.sessions.new && state.sessions.new.date===todayStr() && !state.sessions.new.completed);
+  const reviewDisabled = !canStartOrExtend('review') && !(state.sessions.review && state.sessions.review.date===todayStr() && !state.sessions.review.completed);
 
   const shelfBooks = boxCounts.map((n,i)=>{
     const h = Math.round((n/maxCount)*100);
@@ -440,16 +525,20 @@ function renderHome(){
       <div class="shelf">
         <div class="shelf-title">라이트너 박스 현황</div>
         <div class="shelf-row">${shelfBooks}</div>
-        <div class="shelf-caption"><span>박스 1 (초기)</span><span>박스 5 (숙달)</span></div>
+        <div class="shelf-caption"><span>박스 1 (초기)</span><span>박스 5 (숙달/폐기)</span></div>
       </div>
       <div class="pillrow">
         <div class="pill"><div class="n">${studied}</div><div class="l">학습 시작</div></div>
         <div class="pill"><div class="n">${dueCount}</div><div class="l">오늘 복습 대상</div></div>
         <div class="pill"><div class="n">${notStarted}</div><div class="l">아직 안 본 문장</div></div>
       </div>
-      <button class="cta" onclick="startStudy()">
-        <div class="big">${ctaBig}</div>
-        <div class="small">${ctaSmall}</div>
+      <button class="cta" ${newDisabled?'disabled':''} onclick="startStudy('new')">
+        <div class="big">${newInfo.big}</div>
+        <div class="small">${newInfo.small}</div>
+      </button>
+      <button class="cta cta-alt" ${reviewDisabled?'disabled':''} onclick="startStudy('review')">
+        <div class="big">${reviewInfo.big}</div>
+        <div class="small">${reviewInfo.small}</div>
       </button>
       <div class="secrow">
         <div class="secbtn" onclick="route='stats';render()">📊 통계</div>
@@ -458,19 +547,28 @@ function renderHome(){
       </div>
       <input type="file" id="homeImportInput" accept="application/json,.json" style="display:none" onchange="handleHomeImportFile(event)">
       ${notStarted===0 && dueCount===0 ? `<div class="emptynote">전체 ${TOTAL}개 문장을 모두 학습했고, 오늘 복습할 문장은 없습니다. 내일 다시 확인해 보세요.</div>` : ''}
+      ${retiredCount>0 ? `<div class="emptynote">PERFECT로 표시한 ${retiredCount}개 문장은 완전히 습득한 것으로 처리되어 앞으로 복습에 나오지 않습니다.</div>` : ''}
     </main>
   `;
 }
 
-function startStudy(){
-  if(!state.session || state.session.date!==todayStr()){
-    buildTodaySession();
-  } else if(state.session.completed){
-    const extended = extendSession();
-    if(!extended){ showToast('오늘 학습할 수 있는 문장을 모두 마쳤습니다.'); return; }
+function startStudy(mode){
+  activeMode = mode;
+  let s = state.sessions[mode];
+  if(!s || s.date!==todayStr()){
+    s = buildSession(mode);
+    if(s.ids.length===0){
+      showToast(mode==='new' ? '학습할 새 문장이 없습니다.' : '오늘 복습할 문장이 없습니다.');
+      return;
+    }
+  } else if(s.completed){
+    const extended = extendSession(mode);
+    if(!extended){
+      showToast(mode==='new' ? '더 학습할 새 문장이 없습니다.' : '더 복습할 문장이 없습니다.');
+      return;
+    }
   }
-  if(state.session.ids.length===0){ showToast('오늘 학습할 문장이 없습니다.'); return; }
-  revealed = false; showVoiceSettings = false;
+  revealed = false; showVoiceSettings = false; viewIdx = null;
   route='study'; render();
 }
 
@@ -482,20 +580,28 @@ function endStudy(){
   goHome();
 }
 
-function renderStudy(){
-  const s = state.session;
-  if(!s){ goHome(); return; }
-  if(s.completed){ renderComplete(); return; }
+function curDisplayIdx(){
+  const s = curSession();
+  return viewIdx===null ? s.idx : viewIdx;
+}
 
-  const item = SENTENCES[s.ids[s.idx]];
-  const cardNum = s.ids[s.idx]+1;
-  const box = (state.cards[s.ids[s.idx]] ? state.cards[s.ids[s.idx]].box : 0);
+function renderStudy(){
+  const s = curSession();
+  if(!s){ goHome(); return; }
+  if(s.completed && viewIdx===null){ renderComplete(); return; }
+
+  const dispIdx = curDisplayIdx();
+  const item = SENTENCES[s.ids[dispIdx]];
+  const cardNum = s.ids[dispIdx]+1;
+  const box = (state.cards[s.ids[dispIdx]] ? state.cards[s.ids[dispIdx]].box : 0);
+  const isPast = dispIdx < s.idx;
 
   const dots = [0,1,2,3,4].map(i=>`<div class="dot ${i===box?'active':''}"></div>`).join('');
+  const modeLabel = activeMode==='new' ? '새로 학습하기' : '복습하기';
 
   app.innerHTML = `
-    ${header('학습하기', true, `<button class="endbtn" onclick="endStudy()">학습종료</button>`)}
-    <div class="studytop"><div class="daytag">오늘 ${s.idx+1} / ${s.ids.length}</div></div>
+    ${header(modeLabel, true, `<button class="endbtn" onclick="endStudy()">학습종료</button>`)}
+    <div class="studytop"><div class="daytag">${isPast? '지난 문장 · ':''}${dispIdx+1} / ${s.ids.length}</div></div>
     <div class="dots">${dots}</div>
     <div class="studycard">
       <div class="kr">${escapeHtml(item.kr)}</div>
@@ -507,20 +613,33 @@ function renderStudy(){
         : `<div class="hint">영어로 말해본 뒤, 정답을 확인하세요</div>`}
     </div>
     <div class="ctrlrow">
+      <button class="ctrlbtn" onclick="event.stopPropagation();goPrevCard()" ${dispIdx<=0?'disabled':''}>◀</button>
       <button class="ctrlbtn" id="playBtn" onclick="event.stopPropagation();playCurrent()">▶</button>
       <button class="ctrlbtn" onclick="event.stopPropagation();replaySlow()">↻</button>
       <button class="ctrlbtn" onclick="event.stopPropagation();toggleVoiceSettings()">⚙</button>
     </div>
     ${showVoiceSettings ? voiceSettingsHtml() : ''}
     ${revealed ? `
+      ${isPast ? `<div class="pastnote">지난 문장을 다시 채점하면 기존 결과를 정정합니다.</div>` : ''}
       <div class="gradebtns">
         <button class="gradebtn again" onclick="answer('again')"><span class="badge">↺</span>AGAIN</button>
         <button class="gradebtn good" onclick="answer('good')"><span class="badge">✓</span>GOOD</button>
         <button class="gradebtn perfect" onclick="answer('perfect')"><span class="badge">★</span>PERFECT</button>
       </div>
     ` : ''}
+    <div class="homebar">
+      <button class="homebtn" onclick="goHome()">🏠 HOME</button>
+    </div>
   `;
   document.getElementById('answerBox').addEventListener('click', ()=>{ if(!revealed) reveal(); });
+}
+
+function goPrevCard(){
+  const dispIdx = curDisplayIdx();
+  if(dispIdx<=0){ showToast('첫 문장입니다.'); return; }
+  viewIdx = dispIdx-1;
+  revealed = false;
+  render();
 }
 
 function voiceSettingsHtml(){
@@ -548,14 +667,14 @@ function setRate(r){ state.voice.rate = r; save(); render(); }
 function toggleAuto(){ state.voice.auto = !state.voice.auto; save(); render(); }
 
 function playCurrent(){
-  const s = state.session;
-  const item = SENTENCES[s.ids[s.idx]];
+  const s = curSession();
+  const item = SENTENCES[s.ids[curDisplayIdx()]];
   if(!revealed){ revealed = true; render(); }
   speak(item.en, 'en-US');
 }
 function replaySlow(){
-  const s = state.session;
-  const item = SENTENCES[s.ids[s.idx]];
+  const s = curSession();
+  const item = SENTENCES[s.ids[curDisplayIdx()]];
   if(!revealed){ revealed = true; render(); }
   speak(item.en, 'en-US', 0.7);
 }
@@ -564,22 +683,32 @@ function reveal(){
   revealed = true;
   render();
   if(state.voice.auto){
-    const s = state.session;
-    const item = SENTENCES[s.ids[s.idx]];
+    const s = curSession();
+    const item = SENTENCES[s.ids[curDisplayIdx()]];
     setTimeout(()=>speak(item.en,'en-US'), 200);
   }
 }
+
 function answer(action){
-  gradeCurrent(action);
+  const s = curSession();
+  const dispIdx = curDisplayIdx();
+  if(dispIdx < s.idx){
+    regradeCard(dispIdx, action);
+    viewIdx = null;
+  } else {
+    gradeCurrent(action);
+    viewIdx = null;
+  }
   revealed = false;
   render();
 }
 
 function renderComplete(){
-  const s = state.session;
-  const more = canExtendToday();
+  const s = curSession();
+  const more = canStartOrExtend(activeMode);
+  const modeLabel = activeMode==='new' ? '새로 학습하기' : '복습하기';
   app.innerHTML = `
-    ${header('학습하기', true)}
+    ${header(modeLabel, true)}
     <main>
       <div class="complete">
         <div class="title">오늘 학습 완료!</div>
@@ -592,11 +721,11 @@ function renderComplete(){
       </div>
       ${more ? `
         <button class="cta" onclick="extendAndContinue()">
-          <div class="big">20개 더 학습하기</div>
+          <div class="big">${activeMode==='new' ? '새 문장 더 학습하기' : '복습 더 하기'}</div>
           <div class="small">오늘 학습을 이어서 계속합니다</div>
         </button>
       ` : `
-        <div class="emptynote">오늘 학습할 수 있는 문장을 모두 마쳤습니다. 내일 다시 확인해 보세요.</div>
+        <div class="emptynote">오늘 ${activeMode==='new'?'학습':'복습'}할 수 있는 문장을 모두 마쳤습니다.</div>
       `}
       <button class="cta" style="${more? 'background:var(--panel-2);color:var(--text);box-shadow:none;border:1px solid var(--border);':''}" onclick="goHome()">
         <div class="big">홈으로</div>
@@ -607,14 +736,14 @@ function renderComplete(){
 }
 
 function extendAndContinue(){
-  const extended = extendSession();
-  if(!extended){ showToast('오늘 학습할 수 있는 문장을 모두 마쳤습니다.'); render(); return; }
-  revealed = false; showVoiceSettings = false;
+  const extended = extendSession(activeMode);
+  if(!extended){ showToast('더 학습할 수 있는 문장이 없습니다.'); render(); return; }
+  revealed = false; showVoiceSettings = false; viewIdx = null;
   render();
 }
 
 function renderStats(){
-  const {boxCounts, studied, notStarted} = masteryStats();
+  const {boxCounts, studied, notStarted, retiredCount} = masteryStats();
   const hist = state.history.slice().reverse().slice(0,30);
   const histHtml = hist.length ? hist.map(h=>`
     <div class="histrow">
@@ -629,12 +758,12 @@ function renderStats(){
       <div class="pillrow">
         <div class="pill"><div class="n">${TOTAL}</div><div class="l">전체 문장</div></div>
         <div class="pill"><div class="n">${studied}</div><div class="l">학습 시작</div></div>
-        <div class="pill"><div class="n">${boxCounts[4]}</div><div class="l">박스5 (숙달)</div></div>
+        <div class="pill"><div class="n">${retiredCount}</div><div class="l">완전 습득(폐기)</div></div>
       </div>
       <div class="pillrow">
         <div class="pill"><div class="n">${notStarted}</div><div class="l">미학습</div></div>
         <div class="pill"><div class="n">${state.history.length}</div><div class="l">누적 학습일</div></div>
-        <div class="pill"><div class="n">${Math.round((boxCounts[4]/Math.max(1,studied))*100)}%</div><div class="l">숙달 비율</div></div>
+        <div class="pill"><div class="n">${Math.round((retiredCount/Math.max(1,studied))*100)}%</div><div class="l">완전 습득 비율</div></div>
       </div>
       <div class="section-title">최근 학습 기록</div>
       <div class="histlist">${histHtml}</div>
@@ -705,6 +834,9 @@ function applyImportedJSON(text){
     if(typeof parsed.cursor !== 'number' || typeof parsed.cards !== 'object'){ throw new Error('형식 오류'); }
     state = Object.assign(defaultState(), parsed);
     state.voice = Object.assign(defaultState().voice, parsed.voice||{});
+    if(!state.sessions) state.sessions = { new:null, review:null };
+    if(!('new' in state.sessions)) state.sessions.new = null;
+    if(!('review' in state.sessions)) state.sessions.review = null;
     save();
     showToast('학습 진도를 불러왔습니다.');
     return true;
@@ -755,6 +887,7 @@ function escapeHtml(str){
 }
 
 render();
+
 </script>
 </body>
 </html>
