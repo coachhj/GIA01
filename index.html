@@ -103,7 +103,7 @@
   }
   .homebtn:active{ background:var(--panel-2); color:var(--text); }
 
-  .secrow{ display:flex; gap:10px; }
+  .secrow{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .secbtn{ flex:1; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:13px 4px; text-align:center; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer; line-height:1.4; }
   .secbtn:active{ background:var(--panel-2); }
 
@@ -488,7 +488,7 @@ function modeButtonText(mode){
   const reviewableCount = getAllReviewable().length;
   if(s && s.date===todayStr()){
     if(!s.completed){
-      return { big: '이어서 학습하기', small: `${s.idx} / ${s.ids.length} 진행 중` };
+      return { big: label, small: `${s.idx} / ${s.ids.length} 진행 중 · 이어서 하기` };
     }
     if(canStartOrExtend(mode)){
       return { big: mode==='new' ? '새 문장 더 학습하기' : '복습 더 하기',
@@ -544,6 +544,7 @@ function renderHome(){
         <div class="secbtn" onclick="route='stats';render()">📊 통계</div>
         <div class="secbtn" onclick="route='settings';render()">⚙ 설정</div>
         <div class="secbtn" onclick="triggerHomeImport()">⬆ 진도 불러오기</div>
+        <div class="secbtn" onclick="manualBackup()">💾 학습상태 저장</div>
       </div>
       <input type="file" id="homeImportInput" accept="application/json,.json" style="display:none" onchange="handleHomeImportFile(event)">
       ${notStarted===0 && dueCount===0 ? `<div class="emptynote">전체 ${TOTAL}개 문장을 모두 학습했고, 오늘 복습할 문장은 없습니다. 내일 다시 확인해 보세요.</div>` : ''}
@@ -815,18 +816,45 @@ function renderSettings(){
   `;
 }
 
-function exportData(){
+function backupFilename(){
+  const d = new Date();
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `giu-bu-${yy}${mm}${dd}.json`;
+}
+
+function exportData(silent){
   const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `giu-leitner-backup-${todayStr()}.json`;
+  a.download = backupFilename();
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('JSON 파일로 내보냈습니다.');
+  if(!silent) showToast('JSON 파일로 내보냈습니다.');
 }
+
+function manualBackup(){
+  exportData();
+  showToast('학습 상태를 저장했습니다.');
+}
+
+let lastBackupSnapshot = null;
+function autoBackupOnLeave(){
+  try{
+    const snap = JSON.stringify(state);
+    if(snap === lastBackupSnapshot) return; // nothing changed since last backup, skip
+    lastBackupSnapshot = snap;
+    exportData(true);
+  }catch(e){ /* ignore -- best effort only */ }
+}
+window.addEventListener('pagehide', autoBackupOnLeave);
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='hidden') autoBackupOnLeave();
+});
 
 function applyImportedJSON(text){
   try{
