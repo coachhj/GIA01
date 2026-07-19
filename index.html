@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>그래머 인 유스 · 라이트너 학습기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-top:#213257;
+    --bg-bot:#0D1526;
+    --panel:#1B2743;
+    --panel-2:#22304F;
+    --border:#33436B;
+    --border-soft:#3E4E76;
+    --text:#F3F5FA;
+    --text-soft:#8C97B4;
+    --gold:#E8B84B;
+    --gold-deep:#C8942F;
+    --blue:#4C7EF3;
+    --green:#3FBF8F;
+    --red:#E2637A;
+    --radius:16px;
+    --shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
+    background-attachment:fixed;
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%; max-width:480px; min-height:100vh;
+    display:flex; flex-direction:column; position:relative;
+    padding-bottom:56px;
+  }
+  header.top{
+    padding:22px 20px 14px;
+    display:flex; align-items:baseline; justify-content:space-between;
+  }
+  header.top .brand{
+    font-family:'Noto Serif KR',serif; font-weight:700; font-size:20px; color:var(--text); letter-spacing:-0.01em;
+  }
+  header.top .brand small{
+    display:block; font-family:'Inter',sans-serif; font-weight:600; font-size:10.5px;
+    letter-spacing:0.09em; color:var(--text-soft); text-transform:uppercase; margin-top:3px;
+  }
+  .icon-btn{
+    background:var(--panel-2); border:1px solid var(--border); cursor:pointer;
+    color:var(--text); font-size:18px; width:38px; height:38px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{ background:var(--border); }
+  .endbtn{
+    background:var(--panel-2); border:1px solid var(--red); color:var(--red);
+    font-size:12px; font-weight:700; padding:8px 12px; border-radius:12px; cursor:pointer;
+  }
+  .endbtn:active{ background:rgba(226,99,122,0.15); }
+  main{ flex:1; padding:0 20px 24px; display:flex; flex-direction:column; gap:18px; }
+
+  /* ---------- shelf ---------- */
+  .shelf{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 18px 16px; }
+  .shelf-title{ font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-soft); font-weight:700; margin-bottom:12px; }
+  .shelf-row{ display:flex; gap:8px; align-items:flex-end; height:76px; }
+  .book{ flex:1; background:var(--panel-2); border-radius:5px 5px 3px 3px; position:relative; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; border:1px solid var(--border); }
+  .book .fill{ width:100%; background:linear-gradient(180deg,var(--gold),var(--gold-deep)); transition:height .5s cubic-bezier(.2,.8,.2,1); }
+  .book .num{ position:absolute; top:6px; left:0; right:0; text-align:center; font-size:11px; font-weight:700; color:var(--text-soft); }
+  .book .count{ position:absolute; bottom:4px; left:0; right:0; text-align:center; font-size:12px; font-weight:800; color:#1B2743; text-shadow:none; }
+  .shelf-caption{ display:flex; justify-content:space-between; margin-top:10px; font-size:11px; color:var(--text-soft); }
+
+  .pillrow{ display:flex; gap:10px; }
+  .pill{ flex:1; background:var(--panel); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:14px 12px; text-align:center; }
+  .pill .n{ font-family:'Noto Serif KR',serif; font-size:22px; font-weight:700; color:var(--gold); }
+  .pill .l{ font-size:11px; color:var(--text-soft); margin-top:2px; }
+
+  .cta{
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+    color:#1B2743; border:none; border-radius:var(--radius); padding:22px 20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    cursor:pointer; box-shadow:0 8px 20px rgba(200,148,47,0.35); transition:transform .15s ease;
+  }
+  .cta:active{ transform:scale(0.98); }
+  .cta .big{ font-family:'Noto Serif KR',serif; font-size:20px; font-weight:700; }
+  .cta .small{ font-size:12px; opacity:0.75; font-weight:600; }
+
+  .secrow{ display:flex; gap:10px; }
+  .secbtn{ flex:1; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:13px 4px; text-align:center; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer; line-height:1.4; }
+  .secbtn:active{ background:var(--panel-2); }
+
+  .emptynote{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; font-size:13px; color:var(--text-soft); line-height:1.6; }
+
+  /* ---------- study screen ---------- */
+  .studytop{ padding:6px 20px 0; display:flex; justify-content:center; }
+  .daytag{ font-size:11px; color:var(--text-soft); background:var(--panel); border:1px solid var(--border); padding:4px 12px; border-radius:20px; }
+  .dots{ display:flex; justify-content:center; gap:7px; padding:16px 20px 0; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--border-soft); }
+  .dot.active{ background:var(--gold); width:20px; border-radius:5px; transition:all .25s ease; }
+
+  .studycard{ padding:18px 20px 0; text-align:center; }
+  .studycard .kr{ font-family:'Noto Serif KR',serif; font-size:23px; font-weight:700; line-height:1.5; color:var(--text); }
+  .studycard .meta{ font-size:12.5px; color:var(--text-soft); margin-top:8px; font-weight:600; }
+
+  .answerbox{
+    margin:20px 20px 0; border:1.5px dashed var(--border-soft); border-radius:var(--radius);
+    background:rgba(255,255,255,0.02); padding:26px 20px; min-height:64px;
+    display:flex; align-items:center; justify-content:center; text-align:center; cursor:pointer;
+  }
+  .answerbox .hint{ font-size:13.5px; color:var(--text-soft); font-weight:500; }
+  .answerbox .en{ font-size:18px; font-weight:700; color:var(--gold); line-height:1.5; }
+
+  .ctrlrow{ display:flex; justify-content:center; gap:16px; padding:20px 20px 0; }
+  .ctrlbtn{
+    width:52px; height:52px; border-radius:50%; background:var(--panel-2); border:1px solid var(--border);
+    color:var(--text); font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .ctrlbtn:active{ background:var(--border); }
+  .ctrlbtn.playing{ background:var(--gold); color:#1B2743; border-color:var(--gold); }
+
+  .gradebtns{ display:flex; gap:8px; padding:22px 20px 0; }
+  .gradebtn{
+    flex:1; padding:13px 4px; border-radius:14px; cursor:pointer; background:var(--panel);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    font-size:11.5px; font-weight:800; letter-spacing:0.03em; color:var(--text);
+  }
+  .gradebtn.again{ border:1.5px solid var(--red); }
+  .gradebtn.good{ border:1.5px solid var(--green); }
+  .gradebtn.perfect{ border:1.5px solid var(--gold); }
+  .gradebtn .badge{ width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .gradebtn.again .badge{ background:var(--red); color:#fff; }
+  .gradebtn.good .badge{ background:var(--green); color:#12321F; }
+  .gradebtn.perfect .badge{ background:var(--gold); color:#1B2743; }
+  .gradebtn:active{ opacity:0.8; }
+
+  .settingspop{
+    margin:18px 20px 0; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; display:flex; flex-direction:column; gap:14px;
+  }
+  .settingspop .row{ display:flex; justify-content:space-between; align-items:center; }
+  .settingspop .row .t{ font-size:13px; font-weight:600; color:var(--text); }
+  .settingspop .row .d{ font-size:11px; color:var(--text-soft); margin-top:2px; }
+  .segbtns{ display:flex; gap:6px; }
+  .segbtn{ padding:7px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); color:var(--text-soft); cursor:pointer; font-weight:600; }
+  .segbtn.sel{ background:var(--gold); border-color:var(--gold); color:#1B2743; }
+  .switch{ width:42px; height:24px; border-radius:14px; background:var(--panel-2); border:1px solid var(--border); position:relative; cursor:pointer; }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--text-soft); transition:all .2s ease; }
+  .switch.on{ background:var(--gold); border-color:var(--gold); }
+  .switch.on .knob{ left:20px; background:#1B2743; }
+
+  /* ---------- complete ---------- */
+  .complete{ background:var(--panel); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); margin:10px 20px 0; padding:32px 24px; text-align:center; }
+  .complete .title{ font-family:'Noto Serif KR',serif; font-size:22px; font-weight:700; color:var(--gold); }
+  .complete .sub{ font-size:13px; color:var(--text-soft); margin-top:6px; }
+  .resultrow{ display:flex; gap:10px; margin-top:20px; }
+  .resultbox{ flex:1; border-radius:12px; padding:14px 6px; border:1px solid var(--border); }
+  .resultbox.ok{ background:rgba(63,191,143,0.1); }
+  .resultbox.ng{ background:rgba(226,99,122,0.1); }
+  .resultbox.pf{ background:rgba(232,184,75,0.12); }
+  .resultbox .n{ font-size:22px; font-weight:800; }
+  .resultbox.ok .n{ color:var(--green); }
+  .resultbox.ng .n{ color:var(--red); }
+  .resultbox.pf .n{ color:var(--gold); }
+  .resultbox .l{ font-size:10.5px; color:var(--text-soft); margin-top:2px; }
+
+  /* ---------- stats ---------- */
+  .section-title{ font-size:13px; font-weight:700; color:var(--text); margin:4px 2px; }
+  .histlist{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  .histrow{ display:flex; justify-content:space-between; align-items:center; padding:12px 16px; font-size:13px; border-bottom:1px solid var(--border); }
+  .histrow:last-child{ border-bottom:none; }
+  .histrow .d{ color:var(--text-soft); }
+  .histrow .res .ok{ color:var(--green); font-weight:700; }
+  .histrow .res .ng{ color:var(--red); font-weight:700; }
+  .nodata{ font-size:12px; color:var(--text-soft); padding:16px; text-align:center; }
+
+  /* ---------- settings screen ---------- */
+  .settingrow{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .settingrow .label{ font-size:13px; font-weight:600; color:var(--text); }
+  .settingrow .desc{ font-size:12px; color:var(--text-soft); line-height:1.5; }
+  .settingrow input[type=number]{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:14px; background:var(--panel-2); color:var(--text); }
+  .settingrow .btn{ padding:12px; border-radius:10px; border:none; font-weight:700; font-size:13px; cursor:pointer; }
+  .btn.primary{ background:var(--gold); color:#1B2743; }
+  .btn.warn{ background:var(--red); color:#fff; }
+  .btn.ghost{ background:var(--panel-2); color:var(--text); border:1px solid var(--border); }
+  textarea.jsonbox{ width:100%; height:90px; border-radius:10px; border:1px solid var(--border); padding:10px; font-size:11px; font-family:monospace; background:var(--panel-2); color:var(--text); }
+
+  footer.copy{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:var(--bg-bot); border-top:1px solid var(--border); text-align:center;
+    font-size:10.5px; color:var(--text-soft); padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    max-width:480px; margin:0 auto;
+  }
+
+  .toast{
+    position:fixed; left:50%; bottom:80px; transform:translateX(-50%);
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:10px 18px; border-radius:20px;
+    font-size:12.5px; opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:100; white-space:nowrap;
+  }
+  .toast.show{ opacity:0.97; }
+
+  @media (max-height:680px){
+    .studycard .kr{ font-size:20px; }
+    .answerbox{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<footer class="copy">© Dr. Hannjoo Lee, KSC/PCC · hannjoo@gmail.com</footer>
+
+<script>
+const SENTENCES = [{"kr": "제 이름은 안나예요.", "en": "My name is Anna."}, {"kr": "저는 미국인이에요. 저는 시카고 출신이에요.", "en": "I'm American. I'm from Chicago."}, {"kr": "저는 22살이에요.", "en": "I'm 22."}, {"kr": "저는 학생이에요.", "en": "I'm a student."}, {"kr": "제 아버지는 의사이고 어머니는 기자입니다.", "en": "My father is a doctor and my mother is a journalist."}, {"kr": "제가 가장 좋아하는 색깔은 파란색이에요.", "en": "My favorite color is blue."}, {"kr": "제가 가장 좋아하는 스포츠는 테니스와 수영이에요.", "en": "My favorite sports are tennis and swimming."}, {"kr": "저는 예술에 관심이 있어요.", "en": "I'm interested in art."}, {"kr": "저는 정치에 관심이 없습니다.", "en": "I'm not interested in politics."}, {"kr": "저는 개가 무서워요.", "en": "I'm scared of dogs."}, {"kr": "피곤하지만 배고프지는 않아요.", "en": "I'm tired, but I'm not hungry."}, {"kr": "저는 32살이에요. 제 여동생은 29살이에요.", "en": "I'm 32 years old. My sister is 29."}, {"kr": "알렉스는 개를 무서워해요.", "en": "Alex is scared of dogs."}, {"kr": "제인은 호주인이에요. 그녀는 미국인이 아닙니다.", "en": "Jane is Australian. She isn't American."}, {"kr": "이 꽃들은 예쁘고 가격도 비싸지 않아요.", "en": "These flowers are nice and they aren't expensive."}, {"kr": "지금은 10시예요. 또 늦었네요.", "en": "It's 10:00. You're late again."}, {"kr": "추워요. 창문을 닫아도 되나요?", "en": "I'm cold. Can I close the window?"}, {"kr": "제임스는 선생님이 아닙니다. 그는 학생이에요.", "en": "James isn't a teacher. He's a student."}, {"kr": "안나와 나는 좋은 친구예요. .", "en": "Anna and I are good friends."}, {"kr": "파리는 아름다운 도시예요.", "en": "Paris is a beautiful city."}, {"kr": "우리 집은 시내 중심가 근처에 있어요.", "en": "Our house is near downtown."}, {"kr": "톰은 여기에 없어요. 그는 지금 직장에 있어요.", "en": "Tom isn't here. He's at work."}, {"kr": "열쇠는 테이블 위에 있습니다.", "en": "Your keys are on the table."}, {"kr": "오늘은 맑지만 따뜻하지는 않아요.", "en": "It's sunny today, but it isn't warm."}, {"kr": "감사합니다. 정말 친절하시네요.", "en": "Thank you. That's very nice of you."}, {"kr": "보세요, 크리스가 있어요.", "en": "Look, there's Chris."}, {"kr": "여기 열쇠가 있어요. 감사합니다.", "en": "Here's your key. Thank you."}, {"kr": "이름이 뭐에요? 데이비드.", "en": "What's your name? David."}, {"kr": "결혼하셨나요? 아니, 그렇지 않아요.", "en": "Are you married? No, I'm not."}, {"kr": "몇 살이에요? 25.", "en": "How old are you? 25."}, {"kr": "당신은 학생이신가요? 네, 그렇습니다.", "en": "Are you a student? Yes, I am."}, {"kr": "내가 늦었나요? 아니요, 시간에 맞춰 오셨습니다.", "en": "Am I late? No, you're on time."}, {"kr": "어머니께서 집에 계시나요? 아니, 그녀는 나가있어.", "en": "Is your mother home? No, she's out."}, {"kr": "부모님은 집에 계세요? 아니, 그들은 나가 있어요.", "en": "Are your parents home? No, they're out."}, {"kr": "방이 추워요? 네, 조금은요.", "en": "Is it cold in your room? Yes, a little bit."}, {"kr": "신발 참 예쁘네요. 새로운 건가요?", "en": "Your shoes are nice. Are they new?"}, {"kr": "그녀는 집에 있나요? 어머니께서 집에 계시나요?", "en": "Is she home? Is your mother home?"}, {"kr": "새로운 건가요? 신발이 새거예요?", "en": "Are they new? Are your shoes new?"}, {"kr": "당신의 어머니는 어디에 계십니까? 그녀는 집에 있나요?", "en": "Where is your mother? Is she home?"}, {"kr": "어디서 오셨나요? 캐나다.", "en": "Where are you from? Canada."}, {"kr": "당신의 차는 무슨 색깔이에요? 빨간색이에요.", "en": "What color is your car? It's red."}, {"kr": "조는 몇 살이에요? 그는 24살이에요.", "en": "How old is Joe? He's 24."}, {"kr": "부모님은 잘 지내세요? 그들은 괜찮아요.", "en": "How are your parents? They're fine."}, {"kr": "이 신발은 참 좋네요. 얼마예요?", "en": "These shoes are nice. How much are they?"}, {"kr": "이 호텔은 별로 좋지 않아요. 왜 이렇게 비싼가요?", "en": "This hotel isn't very good. Why is it so expensive?"}, {"kr": "전화번호는 뭐예요?", "en": "What's your phone number?"}, {"kr": "저 남자는 누구야?", "en": "Who's that man?"}, {"kr": "에밀리는 어디에 있나요?", "en": "Where's Emily?"}, {"kr": "당신의 아버지는 어떻게 지내세요?", "en": "How's your father?"}, {"kr": "피곤하신가요? 네, 그렇습니다.", "en": "Are you tired? Yes, I am."}, {"kr": "배고프신가요? 아니, 그렇지 않아요. 하지만 목이 마르네요.", "en": "Are you hungry? No, I'm not. But I'm thirsty."}, {"kr": "당신의 친구는 일본인인가요? 네, 그렇습니다.", "en": "Is your friend Japanese? Yes, he is."}, {"kr": "이게 당신의 열쇠예요? 네, 그렇습니다.", "en": "Are these your keys? Yes, they are."}, {"kr": "저 자리가 제 자리예요. 아니, 그렇지 않아요.", "en": "That's my seat. No, it isn't."}, {"kr": "나는 먹고 있어요.", "en": "I'm eating."}, {"kr": "그녀는 먹고 있어요. 그녀는 책을 읽지 않아요.", "en": "She's eating. She isn't reading."}, {"kr": "비가 옵니다. 태양이 빛나지 않아요.", "en": "It's raining. The sun isn't shining."}, {"kr": "우리는 달리고 있어요.", "en": "We're running."}, {"kr": "그들은 달리고 있어요. 그들은 걷지 않아요.", "en": "They're running. They aren't walking. ."}, {"kr": "저는 일하고 있어요. 나는 TV를 보지 않아요.", "en": "I'm working. I'm not watching TV."}, {"kr": "마리아는 신문을 읽고 있어요.", "en": "Maria is reading a newspaper."}, {"kr": "그녀는 먹지 않아요.", "en": "She isn't eating. She's not eating."}, {"kr": "버스가 오고 있어요.", "en": "The bus is coming."}, {"kr": "저희는 저녁을 먹고 있어요.", "en": "We're having dinner."}, {"kr": "당신은 내 말을 듣지 않아요.", "en": "You're not listening to me. You aren't listening to me."}, {"kr": "아이들이 숙제를 하고 있습니다.", "en": "The children are doing their homework."}, {"kr": "저는 일하고 있어요. 그녀는 모자를 쓰고 있어요.", "en": "I'm working. She's wearing a hat."}, {"kr": "그들은 야구를 하고 있어요. 나는TV를 보지 않아요.", "en": "They're playing baseball. I'm not watching TV."}, {"kr": "조용히 해주세요. 저는 일하고 있어요.", "en": "Please be quiet. I'm working."}, {"kr": "보세요, 사라가 있어요. 그녀는 갈색 코트를 입고 있어요.", "en": "Look, there's Sarah. She's wearing a brown coat."}, {"kr": "날씨가 좋습니다. 비가 오지 않아요.", "en": "The weather is nice. It's not raining."}, {"kr": "아이들은 어디에 있나요? 그들은 공원에서 놀고 있어요.", "en": "Where are the children? They're playing in the park."}, {"kr": "지금 저녁을 먹고 있어요. 나중에 전화해도 될까요 ?", "en": "We're having dinner now. Can I call you later?"}, {"kr": "너는 TV를 끌 수 있어요. 저는 안 볼 거예요.", "en": "You can turn off the TV. I'm not watching it."}, {"kr": "뭐하세요?", "en": "What are you doing?"}, {"kr": "괜찮으세요? 네, 괜찮아요. 감사해요.", "en": "Are you feeling okay? Yes, I'm fine. Thanks."}, {"kr": "비가 오고 있나요? 예. 우산을 가져가세요.", "en": "Is it raining? Yes. Take an umbrella."}, {"kr": "왜 코트를 입고 계세요? 춥지 않아요.", "en": "Why are you wearing a coat? It's not cold."}, {"kr": "에릭은 무엇을 하고 있나요? 그는 시험공부를 하고 있어요.", "en": "What's Eric doing? He's studying for his exams."}, {"kr": "아이들은 무엇을 하고 있나요? 그들은 TV를 보고 있다.", "en": "What are the children doing? They're watching TV."}, {"kr": "보세요, 에밀리가 있어요. 그녀는 어디로 가는가?", "en": "Look, there's Emily. Where's she going?"}, {"kr": "누구를 기다리고 계신가요? 수를 기다리고 있나요 ?", "en": "Who are you waiting for? Are you waiting for Sue?"}, {"kr": "그는 오늘 일하나요? 벤은 오늘 일하나요 ?", "en": "Is he working today? Is Ben working today?"}, {"kr": "그들은 어디로 가는가? 저 사람들은 어디로 가는 걸까?", "en": "Where are they going? Where are those people going?"}, {"kr": "지금 떠나시나요? 네, 그렇습니다.", "en": "Are you leaving now? Yes, I am."}, {"kr": "벤은 오늘 일하나요? 네, 그렇습니다.", "en": "Is Ben working today? Yes, he is."}, {"kr": "비가 오고 있나요? 아니, 그렇지 않아요.", "en": "Is it raining? No, it isn't."}, {"kr": "친구들이 호텔에 머물고 있나요? 아니, 그렇지 않아요. 그들은 나와 함께 지내요.", "en": "Are your friends staying at a hotel? No, they aren't. They're staying with me."}, {"kr": "우리는 많이 읽습니다. 그들은 많은 책을 가지고 있습니다. 그들은 많이 읽습니다.", "en": "We read a lot. They have a lot of books. They read a lot."}, {"kr": "나는 아이스크림을 좋아해요. 그는 아이스크림콘을 먹고 있어요. 그는 아이스크림을 좋아한다.", "en": "I like ice cream. He's eating an ice cream cone. He likes ice cream."}, {"kr": "저는 사무실에서 일해요. 제 동생은 은행에서 일해요 .", "en": "I work in an office. My brother works in a bank."}, {"kr": "에밀리는 휴스턴에 살아요. 그녀의 부모님은 시카고에 살고 있습니다.", "en": "Emily lives in Houston. Her parents live in Chicago."}, {"kr": "겨울에는 비가 많이 옵니다.", "en": "It rains a lot in the winter."}, {"kr": "존은 매일 집에서 점심을 먹는다.", "en": "John has lunch at home every day."}, {"kr": "나는 큰 도시를 좋아해요.", "en": "I like big cities."}, {"kr": "영어가 참 잘하시네요. 당신은 매우 잘 말씀하시네요 .", "en": "Your English is good. You speak very well."}, {"kr": "톰은 매우 열심히 일합니다. 그는 저녁 7시 30분에 일을 시작 해서 8시에 끝냅니다.", "en": "Tom works very hard. He starts at 7:30 and finishes at 8:00 at night."}, {"kr": "지구는 태양을 공전합니다.", "en": "The Earth goes around the Sun."}, {"kr": "우리는 여가시간에 다양한 일을 합니다 .", "en": "We do a lot of different things in our free time."}, {"kr": "병원을 짓는 데는 많은 비용이 든다.", "en": "It costs a lot of money to build a hospital."}, {"kr": "수는 항상 일찍 일하러 간다.", "en": "Sue always gets to work early."}, {"kr": "나는 아침을 먹지 않아요.", "en": "I never eat breakfast."}, {"kr": "우리는 주말에 종종 늦게 잔다.", "en": "We often sleep late on weekends."}, {"kr": "마크는 보통 일요일에 테니스를 친다.", "en": "Mark usually plays tennis on Sundays."}, {"kr": "가끔 걸어서 출근하지만 그렇게 자주는 아닙니다.", "en": "I sometimes walk to work, but not very often."}, {"kr": "커피? 괜찮습니다. 나는 커피를 마시지 않아요.", "en": "Coffee? No thanks. I don't drink coffee."}, {"kr": "그녀는 커피를 마시지 않습니다.", "en": "She doesn't drink coffee."}, {"kr": "나는 내 직업을 좋아하지 않는다. 그는 자신의 직업을 좋아하지 않습니다.", "en": "I don't like my job. He doesn't like his job."}, {"kr": "나는 커피는 마시지만, 차는 마시지 않아요.", "en": "I drink coffee, but I don't drink tea."}, {"kr": "수는 차를 마시지만, 커피는 마시지 않습니다 .", "en": "Sue drinks tea, but she doesn't drink coffee."}, {"kr": "당신은 별로 열심히 일하지 않아요.", "en": "You don't work very hard."}, {"kr": "우리는 TV를 자주 보지 않아요.", "en": "We don't watch TV very often."}, {"kr": "날씨는 보통 좋습니다. 비가 자주 내리지 않아요.", "en": "The weather is usually nice. It doesn't rain very often."}, {"kr": "맷과 니콜은 아는 사람이 별로 없습니다.", "en": "Matt and Nicole don't know many people."}, {"kr": "나는 축구를 좋아하지 않아.", "en": "I don't like football."}, {"kr": "그는 축구를 좋아하지 않습니다.", "en": "He doesn't like football."}, {"kr": "나는 조쉬를 좋아하지 않고, 조쉬도 나를 좋아하지 않아요.", "en": "I don't like Josh and Josh doesn't like me."}, {"kr": "내 차는 연료를 많이 소모하지 않아요.", "en": "My car doesn't use much gas."}, {"kr": "가끔 늦는 경우도 있지만, 그렇게 자주 일어나는 일은 아닙니다.", "en": "Sometimes he is late, but it doesn't happen very often."}, {"kr": "나는 차를 씻는 것을 좋아하지 않는다. 저는 그런 일을 자주 하지 않아요.", "en": "I don't like to wash the car. I don't do it very often."}, {"kr": "사라는 스페인어는 할 줄 알지만 이탈리아어는 할 줄 모릅니다.", "en": "Sarah speaks Spanish, but she doesn't speak Italian."}, {"kr": "빌은 자신의 일을 잘하지 못합니다.", "en": "Bill doesn't do his job very well."}, {"kr": "마리아는 보통 아침을 먹지 않습니다.", "en": "Maria doesn't usually have breakfast."}, {"kr": "기타를 치시나요?", "en": "Do you play the guitar?"}, {"kr": "당신의 친구들이 이 근처에 사나요?", "en": "Do your friends live near here?"}, {"kr": "크리스는 일요일에 일하나요?", "en": "Does Chris work on Sundays?"}, {"kr": "여기는 비가 많이 오나요?", "en": "Does it rain a lot here?"}, {"kr": "당신의 부모님은 어디에 사시나요?", "en": "Where do your parents live?"}, {"kr": "얼마나 자주 머리를 감으시나요?", "en": "How often do you wash your hair?"}, {"kr": "이 단어는 무슨 뜻인가요?", "en": "What does this word mean?"}, {"kr": "푸에르토리코까지 비행기표는 얼마인가요 ?", "en": "How much does it cost to fly to Puerto Rico?"}, {"kr": "크리스는 항상 일요일에 일하나요?", "en": "Does Chris always work on Sundays?"}, {"kr": "주말에는 보통 무엇을 하시나요?", "en": "What do you usually do on weekends?"}, {"kr": "그들은 음악을 좋아하나요?", "en": "Do they like music?"}, {"kr": "그는 음악을 좋아하나요?", "en": "Does he like music?"}, {"kr": "기타를 치시나요? 아니요, 그렇지 않아요.", "en": "Do you play the guitar? No, I don't."}, {"kr": "당신의 부모님은 영어를 할 줄 아시나요? 네, 그렇습니다 .", "en": "Do your parents speak English? Yes, they do."}, {"kr": "라이언은 열심히 일하나요? 네, 그렇습니다.", "en": "Does Ryan work hard? Yes, he does."}, {"kr": "당신의 여동생은 밴쿠버에 사시나요? 아니, 그렇지 않아요.", "en": "Does your sister live in Vancouver? No, she doesn't."}, {"kr": "잭은 텔레비전을 보고 있다. 그는 기타를 연주하지 않습니다.", "en": "Jack is watching television. He is not playing the guitar."}, {"kr": "하지만 잭은 기타를 가지고 있어요. 그는 그 악기를 자주 연주하고 , 매우 잘 연주합니다.", "en": "But Jack has a guitar. He plays it a lot and he plays very well."}, {"kr": "잭은 기타를 연주하지만, 지금은 기타를 연주하지 않습니다.", "en": "Jack plays the guitar, but he is not playing the guitar now."}, {"kr": "그는 기타를 치고 있나요? 아니, 그렇지 않아요.", "en": "Is he playing the guitar? No, he isn't."}, {"kr": "그는 기타를 치나요? 네, 그렇습니다.", "en": "Does he play the guitar? Yes, he does."}, {"kr": "조용히 해주세요. 저는 일하고 있어요.", "en": "Please be quiet. I'm working."}, {"kr": "톰은 지금 샤워를 하고 있어요.", "en": "Tom is taking a shower at the moment."}, {"kr": "우산을 가져가세요. 비가 옵니다.", "en": "Take an umbrella with you. It's raining."}, {"kr": "TV를 끌 수 있어요. 저는 안 볼 거예요.", "en": "You can turn off the TV. I'm not watching it."}, {"kr": "왜 테이블 밑에 숨어있니? 뭐 하세요?", "en": "Why are you under the table? What are you doing?"}, {"kr": "저는 매일 오전 9시부터 오후 5시 30분까지 일합니다.", "en": "I work every day from 9:00 to 5:30."}, {"kr": "톰은 매일 아침 샤워를 합니다.", "en": "Tom takes a shower every morning."}, {"kr": "겨울에는 비가 많이 옵니다.", "en": "It rains a lot there in the winter."}, {"kr": "저는 TV를 자주 보지 않아요.", "en": "I don't watch TV very often."}, {"kr": "피곤해요. 나는 집에 가고 싶다.", "en": "I'm tired. I want to go home."}, {"kr": "그 여자 알아요? 네, 하지만 그녀의 이름은 기억나지 않습니다.", "en": "Do you know that girl? Yes, but I don't remember her name."}, {"kr": "모르겠어요. 무슨 뜻이에요?", "en": "I don't understand. What do you mean?"}, {"kr": "머리가 아프네요.", "en": "I've got a headache."}, {"kr": "저는 파란 눈을 가지고 있어요.", "en": "I have blue eyes. I've got blue eyes."}, {"kr": "톰에게는 두 명의 자매가 있습니다.", "en": "Tom has two sisters. Tom has got two sisters."}, {"kr": "우리 차에는 문이 네 개 있습니다. 우리 차에는 문이 네 개 있어요.", "en": "Our car has four doors. Our car has got four doors."}, {"kr": "사라는 기분이 좋지 않아요. 그녀는 두통이 있어요. 그녀는 두통이 있어요.", "en": "Sarah isn't feeling well. She has a headache. She's got a headache."}, {"kr": "그들은 동물을 좋아합니다. 그들은 말 한 마리, 개 세 마리, 고양이 여섯 마리를 키우고 있습니다.", "en": "They like animals. They have a horse, three dogs, and six cats."}, {"kr": "그들은 말 한마리, 개 세 마리, 고양이 여섯 마리를 키우고 있습니다.", "en": "They've got a horse, three dogs, and six cats."}, {"kr": "저는 차가 없어요.", "en": "I don't have a car. I haven't got a car."}, {"kr": "그들에게는 자녀가 없습니다. 그들에게는 아이가 없습니다.", "en": "They don't have any children. They haven't got any children."}, {"kr": "좋은 집인데 차고가 없어요.", "en": "It's a nice house, but it doesn't have a garage."}, {"kr": "좋은 집인데 차고가 없어요.", "en": "It's a nice house, but it hasn't got a garage."}, {"kr": "마르코는 지금 직업이 없어요. 마르코는 지금 일자리가 없어요.", "en": "Marco doesn't have a job right now. Marco hasn't got a job right now."}, {"kr": "카메라가 있나요? 아니요, 그렇지 않아요. 카메라 있어요? 아니요, 그렇지 않아요.", "en": "Do you have a camera? No, I don't. Have you got a camera? No, I haven't."}, {"kr": "제니퍼는 차가 있나요? 네, 그렇습니다. 제니퍼는 차를 가지고 있나요? 네, 그렇습니다.", "en": "Does Jennifer have a car? Yes, she does. Has Jennifer got a car? Yes, she has."}, {"kr": "그녀는 어떤 종류의 차를 가지고 있나요?", "en": "What kind of car does she have? What kind of car has she got?"}, {"kr": "그들은 몇 명의 자녀를 두고 있나요? 그들은 몇 명의 자녀를 두었나요?", "en": "How many children do they have? How many children have they got?"}, {"kr": "로버트는 지금 일하고 있어요. 어젯밤 자정에도 그는 직장에 없었습니다. 그는 침대에 있었습니다.", "en": "Robert is at work now. At midnight last night, he wasn't at work. He was in bed."}, {"kr": "그는 잠들어 있었습니다. 로버트는 지금 일하고 있어요.", "en": "He was asleep. Robert is at work now."}, {"kr": "어젯밤 자정에도 그는 직장에 없었습니다. 그는 침대에 있었습니다. 그는 잠들어 있었습니다.", "en": "At midnight last night, he wasn't at work. He was in bed. He was asleep."}, {"kr": "나는 피곤하다. 나는 어젯밤에 피곤했다 .", "en": "I am tired. I was tired last night."}, {"kr": "케이트는 어디에 있나요? 케이트는 어제 어디에 있었나요?", "en": "Where is Kate? Where was Kate yesterday?"}, {"kr": "오늘은 날씨가 좋네요. 지난주 날씨가 좋았습니다.", "en": "The weather is nice today. The weather was nice last week."}, {"kr": "당신은 늦었습니다. 어제 늦었어요.", "en": "You are late. You were late yesterday."}, {"kr": "그들은 여기에 없습니다. 그들은 지난 일요일에 여기에 없었습니다 .", "en": "They aren't here. They weren't here last Sunday."}, {"kr": "작년에 레이첼은 22살이었고, 지금은 23살이에요.", "en": "Last year, Rachel was 22, so she is 23 now."}, {"kr": "제가 어렸을 때는 개가 무서웠어요.", "en": "When I was a child, I was scared of dogs."}, {"kr": "여행 후 배가 고팠지만 피곤하지는 않았습니다.", "en": "We were hungry after the trip, but we weren't tired."}, {"kr": "호텔은 편안했지만, 가격이 비싸지 않았습니다.", "en": "The hotel was comfortable, but it wasn't expensive."}, {"kr": "휴가를 갔을 때 날씨가 좋았나요?", "en": "Was the weather nice when you were on vacation?"}, {"kr": "신발 참 예쁘네요. 비싼 편이었나요?", "en": "Your shoes are nice. Were they expensive?"}, {"kr": "오늘 아침 왜 늦었나요?", "en": "Why were you late this morning?"}, {"kr": "늦었나요? 아니, 그렇지 않았어요.", "en": "Were you late? No, I wasn't."}, {"kr": "톰은 어제 회사에 있었나요? 네, 그렇습니다.", "en": "Was Tom at work yesterday? Yes, he was."}, {"kr": "수와 짐이 파티에 있었나요? 아니, 그렇지 않았어요 .", "en": "Were Sue and Jim at the party? No, they weren't."}, {"kr": "그들은 매일 밤 TV를 봅니다. 그들은 어젯밤에 TV를 보았습니다 .", "en": "They watch TV every night. They watched TV last night."}, {"kr": "나는 매일 아침 양치질을 합니다. 오늘 아침에 양치질을 했습니다.", "en": "I brush my teeth every morning. This morning I brushed my teeth."}, {"kr": "토니는 2005년부터 2011년까지 은행에서 일했습니다.", "en": "Tony worked in a bank from 2005 to 2011."}, {"kr": "어제는 오전 내내 비가 내렸습니다. 점심시간에 멈췄습니다.", "en": "Yesterday it rained all morning. It stopped at lunchtime."}, {"kr": "우리는 어젯밤 파티를 즐겼습니다. 우리는 많이 춤을 추었고 많은 사람들과 이야기를 나누었습니다.", "en": "We enjoyed the party last night. We danced a lot and talked to a lot of people."}, {"kr": "파티는 자정에 끝났습니다.", "en": "The party ended at midnight."}, {"kr": "톰이 여기 있나요? 아니요, 그는 그냥 떠났어요.", "en": "Is Tom here? No, he just left."}, {"kr": "배고프지 않아요. 방금 저녁을 먹었어요.", "en": "I'm not hungry. I just had dinner."}, {"kr": "저는 보통 일찍 일어나지만, 오늘 아침은 9시 30분에 일어났습니다.", "en": "I usually get up early, but this morning I got up at 9:30."}, {"kr": "우리는 어제 많은 일을 했습니다.", "en": "We did a lot of work yesterday."}, {"kr": "메건은 지난주에 세 번이나 영화를 보러 갔습니다 .", "en": "Megan went to the movies three times last week."}, {"kr": "제임스가 방으로 들어와서 코트를 벗고 앉았습니다.", "en": "James came into the room, took off his coat, and sat down."}, {"kr": "저는 TV를 자주 보지 않아요. 어제는 TV를 보지 않았어요.", "en": "I don't watch TV very often. I didn't watch TV yesterday."}, {"kr": "그녀는 자주 외출하나요? 그녀는 어젯밤에 외출했나요 ?", "en": "Does she go out often? Did she go out last night?"}, {"kr": "어제 테니스를 쳤는데, 이기지 못했어요.", "en": "I played tennis yesterday, but I didn't win."}, {"kr": "숙제를 했나요? 아니요, 시간이 없었어요.", "en": "Did you do your homework? No, I didn't have time."}, {"kr": "우리는 좋은 식당에 갔지만, 음식은 별로 맛있지 않았어요.", "en": "We went to a nice restaurant, but we didn't enjoy the meal."}, {"kr": "언니가 전화했나요?", "en": "Did your sister call you?"}, {"kr": "어젯밤에 무엇을 하셨나요?", "en": "What did you do last night?"}, {"kr": "사고는 어떻게 일어났나요?", "en": "How did the accident happen?"}, {"kr": "부모님은 휴가를 어디로 가셨나요?", "en": "Where did your parents go on vacation?"}, {"kr": "어제 조를 보셨나요? 아니, 그러지 않았어요.", "en": "Did you see Joe yesterday? No, I didn't."}, {"kr": "일요일에 비가 내렸나요? 네, 그렇습니다.", "en": "Did it rain on Sunday? Yes, it did."}, {"kr": "엠마가 파티에 왔나요? 아니, 그렇지 않았어요 .", "en": "Did Emma come to the party? No, she didn't."}, {"kr": "부모님은 즐거운 여행을 하셨나요? 네, 그렇습니다.", "en": "Did your parents have a good trip? Yes, they did."}, {"kr": "지금은 6시입니다. 롭이 집에 있어요. 그는 TV를 보고 있다.", "en": "It is 6:00 now. Rob is home. He is watching TV."}, {"kr": "오후 4시에 체육관에 있었습니다. 그는 집에 없었습니다. 그는 체육관에 있었습니다.", "en": "At 4:00. He wasn't at home. He was at the gym."}, {"kr": "그는 수영장에서 수영을 하고 있었습니다. 그는 TV를 보지 않았습니다.", "en": "He was swimming in the pool. He wasn't watching TV."}, {"kr": "어제 11시 30분에 무엇을 하고 있었나요? 당신은 일하고 있었나요?", "en": "What were you doing at 11:30 yesterday? Were you working?"}, {"kr": "그는 무슨 말을 했나요? 모르겠습니다. 나는 듣지 않았다.", "en": "What did he say? I don't know. I wasn't listening."}, {"kr": "비가 내렸기 때문에 우리는 나가지 않았습니다.", "en": "It was raining so we didn't go out."}, {"kr": "2009년에 우리는 일본에 살고 있었습니다.", "en": "In 2009 we were living in Japan."}, {"kr": "오늘 그녀는 치마를 입고 있어요. 하지만 어제는 바지를 입고 있었어요.", "en": "Today she's wearing a skirt. But yesterday she was wearing pants."}, {"kr": "어제는 일찍 일어났습니다. 아름다운 아침이었습니다.", "en": "I woke up early yesterday. It was a beautiful morning."}, {"kr": "태양이 빛나고 새들이 노래를 불렀습니다.", "en": "The sun was shining and the birds were singing."}, {"kr": "저는 일하고 있어요. 저는 어젯밤 10시 30분에 일하고 있었습니다 .", "en": "I'm working. I was working at 10:30 last night."}, {"kr": "비가 오지 않아요. 우리가 나갔을 때는 비가 내리지 않았어요 .", "en": "It isn't raining. It wasn't raining when we went out."}, {"kr": "뭐하세요? 오후 3시에 무엇을 하고 있었나요?", "en": "What are you doing? What were you doing at 3:00?"}, {"kr": "잭은 책을 읽고 있었습니다. 그의 전화가 울렸다.", "en": "Jack was reading a book. His phone rang."}, {"kr": "그는 독서를 멈췄다. 그는전화를 받았다.", "en": "He stopped reading. He answered his phone."}, {"kr": "무슨 일이에요? 그의 전화가 울렸다.", "en": "What happened? His phone rang."}, {"kr": "잭의 전화가 울렸을 때 그는 무엇을 하고 있었나요? 그는 책을 읽고 있었습니다.", "en": "What was Jack doing when his phone rang? He was reading a book."}, {"kr": "그의 전화가 울렸을 때 그는 무엇을 했나요? 그는 독서를 멈추고 전화를 받았다.", "en": "What did he do when his phone rang? He stopped reading and answered his phone."}, {"kr": "잭은 전화가 울리기 전에 책을 읽기 시작했습니다 . 그래서 전화가 울렸을 때 그는 책을 읽고 있었습니다.", "en": "Jack began reading before his phone rang. So when his phone rang, he was reading."}, {"kr": "어제 아침에 무엇을 하셨나요? 우리는 테니스를 쳤습니다.", "en": "What did you do yesterday morning? We played tennis."}, {"kr": "잭은 어제 책을 읽었습니다.", "en": "Jack read a book yesterday."}, {"kr": "어젯밤에 TV로 경기를 보셨나요?", "en": "Did you watch the game on TV last night?"}, {"kr": "우리가 휴가를 가는 동안에는 비가 내리지 않았습니다 .", "en": "It didn't rain while we were on vacation."}, {"kr": "10시 30분에 무엇을 하고 있었나요? 우리는 테니스를 치고 있었습니다.", "en": "What were you doing at 10:30? We were playing tennis."}, {"kr": "잭이 책을 읽고 있을 때 전화가 울렸다.", "en": "Jack was reading a book when his phone rang."}, {"kr": "내가 전화했을 때 TV를 보고 있었나요?", "en": "Were you watching TV when I called you?"}, {"kr": "내가 일어났을 때 비가 내리지 않았다.", "en": "It wasn't raining when I got up."}, {"kr": "저는 오전 9시에 일을 시작해서 오후 4시 30분에 끝냈습니다. 오후 2시 30분에 저는 일하고 있었습니다.", "en": "I started work at 9:00 and finished at 4:30. At 2:30, I was working."}, {"kr": "우리가 나갔을 때 비가 내리고 있었습니다.", "en": "It was raining when we went out."}, {"kr": "오늘 아침에 에밀리와 샘을 봤어요. 그들은 버스 정류장에서 기다리고 있었습니다.", "en": "I saw Emily and Sam this morning. They were waiting at the bus stop."}, {"kr": "그레이스는 책을 읽다가 잠들었습니다.", "en": "Grace fell asleep while she was reading."}, {"kr": "저는 공장에서 일해요. 저는 슈퍼마켓에서 일해요. 저는 공장에서 일했었습니다.", "en": "I work in a factory. I work in a supermarket. I used to work in a factory."}, {"kr": "데이브는 공장에서 일했었습니다. 지금 그는 슈퍼마켓에서 일합니다.", "en": "Dave used to work in a factory. Now he works in a supermarket."}, {"kr": "저는 아주 긴 머리를 가졌었습니다.", "en": "I used to have very long hair."}, {"kr": "제가 어렸을 때는 초콜릿을 좋아했었습니다.", "en": "When I was a child, I used to like chocolate."}, {"kr": "저는 예전에는 책을 많이 읽었지만, 요즘은 별로 읽지 않습니다.", "en": "I used to read a lot of books, but I don't read much these days."}, {"kr": "리즈는 지금은 짧은 머리지만, 예전에는 매우 길었어요.", "en": "Liz has short hair now, but it used to be very long."}, {"kr": "그들은 우리와 같은 거리에 살았기 때문에 우리는 그들을 자주 보았지만, 요즘은 그들을 자주 볼 수 없습니다.", "en": "They used to live on the same street as us, so we used to see them a lot, but we don't see them much anymore."}, {"kr": "앨리슨은 피아노를 가지고 있었지만 몇 년 전에 팔았습니다.", "en": "Allison used to have a piano, but she sold it a few years ago."}, {"kr": "저는 예전에는 토마토를 좋아하지 않았지만, 지금은 좋아해요.", "en": "I didn't used to like tomatoes, but I like them now."}, {"kr": "여기로 오기 전에는 어디에 살았나요?", "en": "Where did you used to live before you came here?"}, {"kr": "저는 테니스를 쳤었고, 지금은 골프를 칩니다.", "en": "I used to play tennis, now I play golf."}, {"kr": "우리는 보통 일찍 일어납니다.", "en": "We usually get up early."}, {"kr": "멕시코시티에 가보셨나요? 네, 여러 번 그랬습니다.", "en": "Have you been to Mexico City? Yes, I have many times."}, {"kr": "일본에 가본 적이 있나요? 아니요, 일본에 가본 적이 없습니다.", "en": "Have you ever been to Japan? No, I've never been to Japan."}, {"kr": "프랑스에 가보셨나요? 아니요, 그렇지 않아요.", "en": "Have you been to France? No, I haven't."}, {"kr": "우리는 캐나다에는 가봤지만, 알래스카에는 가본 적이 없습니다.", "en": "We've been to Canada, but we haven't been to Alaska."}, {"kr": "메리는 흥미로운 사람이다. 그녀는 다양한 직업을 가졌고, 다양한 곳에서 살았습니다.", "en": "Mary is an interesting person. She has had many different jobs and has lived in many different places."}, {"kr": "저는 그 여자를 전에 본 적이 있는데, 어디서 본 건지 기억이 나지 않습니다.", "en": "I've seen that woman before, but I can't remember where."}, {"kr": "브라질은 월드컵에서 몇 번 우승했나요 ?", "en": "How many times has Brazil won the World Cup?"}, {"kr": "이 책을 읽어 보셨나요? 네, 두 번 읽었습니다.", "en": "Have you read this book? Yes, I've read it twice."}, {"kr": "미셸은 호주에 가본 적이 있나요? 네, 한 번요.", "en": "Has Michelle ever been to Australia? Yes, once."}, {"kr": "골프를 쳐본 적이 있나요? 네, 많이 플레이해요 .", "en": "Have you ever played golf? Yes, I play a lot."}, {"kr": "내 여동생은 비행기를 타 본 적이 없습니다.", "en": "My sister has never traveled by plane."}, {"kr": "저는 말을 타본 적이 없습니다.", "en": "I've never ridden a horse."}, {"kr": "저 남자는 누구야? 모르겠습니다. 저는 그를 전에 본 적이 없습니다.", "en": "Who is that man? I don't know. I've never seen him before."}, {"kr": "브라질에 머무신 지 얼마나 되셨나요? 월요일부터.", "en": "How long have you been in Brazil? Since Monday."}, {"kr": "월요일부터 브라질에 머무른 지 얼마나 되었나요?", "en": "How long have you been in Brazil since Monday?"}, {"kr": "레이첼은 브라질에서 휴가를 보내고 있어요. 그녀는 지금 거기에 있어요.", "en": "Rachel is on vacation in Brazil. She is there now."}, {"kr": "그녀는 월요일에 브라질에 도착했습니다. 오늘은 목요일입니다.", "en": "She arrived in Brazil on Monday. Today is Thursday."}, {"kr": "그녀는 브라질에 얼마나 오래 있었나요? 그녀는 월요일부터 브라질에 있었습니다. 그녀는 브라질에 3일 동안 머물렀습니다.", "en": "How long has she been in Brazil? She has been in Brazil since Monday. She has been in Brazil for 3 days."}, {"kr": "댄과 케이트는 결혼했다. 그들은 5년째 결혼 생활을 하고 있습니다.", "en": "Dan and Kate are married. They have been married for 5 years."}, {"kr": "결혼하셨나요? 결혼한 지 얼마나 되었나요 ?", "en": "Are you married? How long have you been married?"}, {"kr": "리사를 아시나요? 그녀를 얼마나 오랫동안 알고 계셨나요?", "en": "Do you know Lisa? How long have you known her?"}, {"kr": "저는 리사를 알아요. 저는 그녀를 오랫동안 알고 있어요 .", "en": "I know Lisa. I've known her for a long time."}, {"kr": "베라는 브라질에 살고 있어요. 그녀는 브라질에 얼마나 오래 살았나요? 그녀는 평생 그곳에서 살았습니다.", "en": "Vera lives in Brazil. How long has she lived in Brazil? She has lived there all her life."}, {"kr": "나는 차를 가지고 있어요. 당신은 얼마나 오랫동안 차를 가지고 계셨나요? 4월부터 가지고 있었어요.", "en": "I have a car. How long have you had your car? I've had it since April."}, {"kr": "저는 독일어를 공부하고 있어요. 얼마나 오랫동안 독일어를 공부하셨나요? 저는 2년 동안 독일어를 공부했습니다.", "en": "I'm studying German. How long have you been studying German? I've been studying German for two years."}, {"kr": "데비드는 TV를 보고 있다. 그는 얼마나 오랫동안 TV를 보았나요?", "en": "David is watching TV. How long has he been watching TV?"}, {"kr": "그는 오후 5시부터 TV를 보고 있었습니다.", "en": "He's been watching TV since 5:00."}, {"kr": "비가 옵니다. 하루종일 비가 내렸습니다.", "en": "It's raining. It's been raining all day."}, {"kr": "레이첼은 브라질에 있어요. 그녀는 거기에 3일 동안 있었습니다. 그녀는 월요일부터 거기에 있었습니다.", "en": "Rachel is in Brazil. She has been there for 3 days. She has been there since Monday."}, {"kr": "데이비드는 6개월 동안 캐나다에 있었습니다.", "en": "David has been in Canada for 6 months."}, {"kr": "우리는 2시간 동안 기다렸어요.", "en": "We've been waiting for 2 hours."}, {"kr": "저는 오랫동안 시카고에 살았습니다.", "en": "I've lived in Chicago for a long time."}, {"kr": "데이비드는 1월부터 캐나다에 있었습니다.", "en": "David has been in Canada since January."}, {"kr": "우리는 9시부터 기다리고 있었어요.", "en": "We've been waiting since 9:00."}, {"kr": "저는 10살 때부터 시카고에 살았어요 .", "en": "I've lived in Chicago since I was 10 years old."}, {"kr": "안나는 3주 전에 새로운 직장에 취직했습니다.", "en": "Anna started her new job 3 weeks ago."}, {"kr": "톰은 언제 떠났나요? 10분 전.", "en": "When did Tom leave? 10 minutes ago."}, {"kr": "저녁을 먹었어요. 한 시간 전에 저녁을 먹었어요.", "en": "I had dinner. An hour ago I had dinner an hour ago."}, {"kr": "100년 전의 삶은 지금과 매우 달랐습니다 .", "en": "Life was very different 100 years ago."}, {"kr": "레이첼은 언제 브라질에 도착했나요? 그녀는 3일 전에 브라질에 도착했습니다.", "en": "When did Rachel arrive in Brazil? She arrived in Brazil 3 days ago."}, {"kr": "그녀는 브라질에 얼마나 오래 있었나요? 그녀는 브라질에 3일 동안 머물렀습니다.", "en": "How long has she been in Brazil? She has been in Brazil for 3 days."}, {"kr": "케이트는 커피를 만들고 있어요.", "en": "Kate is making some coffee."}, {"kr": "커피를 만들었어요. 드시겠어요 ? 케이트가 커피를 만들었어요.", "en": "I've made some coffee. Would you like some? Kate has made some coffee."}, {"kr": "나는 직장을 그만두기로 결심했다. 정말? 왜?", "en": "I've decided to quit my job. Really? Why?"}, {"kr": "우리는 차를 팔았어요. 이제 우리는 매일 버스를 타요 .", "en": "We've sold our car. Now we take the bus every day."}, {"kr": "우리는 차를 팔았습니다. 이제 우리는 매일 버스를 타요 .", "en": "We sold our car. Now we take the bus every day."}, {"kr": "다음 주에 파티가 있다고 하는데, 아직 나를 초대하지 않았어.", "en": "They're having a party next week, but they haven't invited me."}, {"kr": "나는 에이미를 찾고 있어요. 그녀를 보셨나요? 나는 에미를 찾고 있어요. 그녀를 보셨나요?", "en": "I'm looking for Amy. Have you seen her? I'm looking for Emmy. Have you seen her?"}, {"kr": "나는 직장을 그만두기로 결심했다.", "en": "I decided to quit my job."}, {"kr": "그녀의 영어 실력이 향상되었습니다. 지금은 꽤 좋아요.", "en": "Her English has improved. It's pretty good now."}, {"kr": "도시는 많이 바뀌었습니다. 지금은 많이 달라졌습니다.", "en": "The city has changed a lot. It's very different now."}, {"kr": "그들은 어제 도착했습니다.", "en": "They arrived yesterday."}, {"kr": "일요일에는 어디에 계셨나요?", "en": "Where were you on Sunday?"}, {"kr": "우리는 작년에 휴가를 가지 않았습니다.", "en": "We didn't take a vacation last year."}, {"kr": "어젯밤에 외출했나요? 아니요, 집에 있었어요.", "en": "Did you go out last night? No, I stayed home."}, {"kr": "윌리엄 셰익스피어는 1564년부터 1616년까지 살았습니다. 그는 작가였습니다.", "en": "William Shakespeare lived from 1564 to 1616. He was a writer."}, {"kr": "그는 많은 희곡과 시를 썼습니다.", "en": "He wrote many plays and poems."}, {"kr": "언제 차를 팔았나요?", "en": "When did you sell your car?"}, {"kr": "앤디는 언제 나갔나요?", "en": "What time did Andy go out?"}, {"kr": "제임스는 당신이 떠난다는 걸 알고 있나요? 아니요, 아직 그에게 말하지 않았어요.", "en": "Does James know that you're going away? No, I haven't told him yet."}, {"kr": "제임스는 당신이 떠난다는 걸 알고 있나요? 아니요, 아직 그에게 말하지 않았어요.", "en": "Does James know that you're going away? No, I haven't told him yet."}, {"kr": "사라와 닉은 도착했나요? 아니요, 아직은 아니지만 곧 도착할 거예요.", "en": "Have Sarah and Nick arrived yet? No, not yet, but they'll be here soon."}, {"kr": "니콜은 새로운 직장에 들어갔나요? 아니요, 그녀는 다음 주부터 시작합니다.", "en": "Has Nicole started her new job yet? No, she's starting next week."}, {"kr": "실비아는 새 드레스를 샀지만 아직 입지 않았습니다.", "en": "Sylvia has bought a new dress, but she hasn't worn it yet."}, {"kr": "니콜은 새로운 직장에 들어갔나요?", "en": "Did Nicole start her new job yet?"}, {"kr": "사무실은 매일 청소됩니다. 어제 사무실을 청소했습니다.", "en": "The office is cleaned every day. The office was cleaned yesterday."}, {"kr": "매일 누군가 사무실을 청소합니다. 사무실은 매일 청소됩니다.", "en": "Somebody cleans the office every day. The office is cleaned every day."}, {"kr": "어제 누군가 사무실을 청소했습니다. 어제 사무실을 청소했습니다.", "en": "Somebody cleaned the office yesterday. The office was cleaned yesterday."}, {"kr": "버터는 우유로 만들어집니다.", "en": "Butter is made from milk."}, {"kr": "오렌지는 캐나다로 수입됩니다.", "en": "Oranges are imported into Canada."}, {"kr": "이 방들은 얼마나 자주 청소되나요?", "en": "How often are these rooms cleaned?"}, {"kr": "나는 파티에 초대받은 적이 없다.", "en": "I am never invited to parties."}, {"kr": "이 집은 100년 전에 지어졌습니다.", "en": "This house was built 100 years ago."}, {"kr": "이 집들은 100년 전에 지어졌습니다.", "en": "These houses were built 100 years ago."}, {"kr": "전화는 언제 발명되었나요?", "en": "When was the telephone invented?"}, {"kr": "우리는 지난주 파티에 초대받지 못했습니다 .", "en": "We weren't invited to the party last week."}, {"kr": "사고로 인해 부상당한 사람이 있나요? 네, 두 사람이 병원으로 이송되었습니다.", "en": "Was anybody injured in the accident? Yes, two people were taken to the hospital."}, {"kr": "저는 1995년 콜롬비아에서 태어났습니다.", "en": "I was born in Colombia in 1995."}, {"kr": "당신은 카이로에서 태어났습니까?", "en": "Were you born in Cairo?"}, {"kr": "전화기는 1876년 알렉산더 그레이엄벨이 발명했습니다.", "en": "The telephone was invented by Alexander Grahambell in 1876."}, {"kr": "며칠 전에 개에게 물렸습니다.", "en": "I was bitten by a dog a few days ago."}, {"kr": "이 그림들이 마음에 드시나요? 그 그림은 제 친구가 그린 거예요.", "en": "Do you like these paintings? They were painted by a friend of mine."}, {"kr": "누군가 문을 칠하고 있다. 문을 칠하고 있습니다.", "en": "Somebody is painting the door. The door is being painted."}, {"kr": "제 차는 차고에 있어요. 수리 중입니다.", "en": "My car is at the garage. It is being repaired."}, {"kr": "공원 맞은편에 새로운 주택이 건설되고 있습니다.", "en": "Some new houses are being built across from the park."}, {"kr": "지금 사무실을 청소하고 있습니다. 사무실은 매일 청소됩니다.", "en": "The office is being cleaned right now. The office is cleaned every day."}, {"kr": "축구 경기는 보통 주말에 열리지만, 다음 주말에는 큰 경기가 열리지 않습니다.", "en": "Football games are usually played on weekends, but no big games are being played next weekend."}, {"kr": "누군가가 문을 칠했습니다. 문이 칠해졌습니다.", "en": "Somebody has painted the door. The door has been painted."}, {"kr": "내 열쇠가 도난당했어요.", "en": "My key has been stolen."}, {"kr": "내 열쇠가 도난당했어요.", "en": "My keys have been stolen."}, {"kr": "나는 파티에 가지 않을 거야. 저는 초대를 받지 못했습니다.", "en": "I'm not going to the party. I haven't been invited."}, {"kr": "이 셔츠는 세탁되었나요?", "en": "Has this shirt been washed?"}, {"kr": "방이 더 이상 더럽지 않아요. 청소가 완료되었습니다. 어제 방을 청소했어요.", "en": "The room isn't dirty anymore. It has been cleaned. The room was cleaned yesterday."}, {"kr": "내 열쇠를 찾을 수 없어요. 도난당한 것 같아요. 지난주에 열쇠가 도난당했어요.", "en": "I can't find my keys. I think they've been stolen. My keys were stolen last week."}, {"kr": "조용히 해주세요. 저는 일하고 있어요.", "en": "Please be quiet. I'm working.(Unit22 )"}, {"kr": "지금은 비가 내리지 않아요.", "en": "It isn't raining right now."}, {"kr": "오늘 밤에 뭐 하시나요?", "en": "What are you doing tonight?"}, {"kr": "그녀가 도착했을 때 저는 일하고 있었습니다.", "en": "I was working when she arrived."}, {"kr": "비가 오지 않았기 때문에 우산이 필요하지 않았습니다 .", "en": "It wasn't raining, so we didn't need an umbrella."}, {"kr": "오후 3시에 무엇을 하고 있었나요?", "en": "What were you doing at 3:00?"}, {"kr": "저는 파티에 초대받은 적이 없습니다. 나는 파티에 초대받은 적이 없어.", "en": "I'm never invited to parties."}, {"kr": "이 사무실은 매일 청소되지 않습니다.", "en": "These offices aren't cleaned every day."}, {"kr": "어제 사무실을 청소했습니다.", "en": "The office was cleaned yesterday."}, {"kr": "창문은 어떻게 깨졌나요?", "en": "How was the window broken?"}, {"kr": "당신은 어디에서 태어났습니까?", "en": "Where were you born?"}, {"kr": "저는 이 집에서 10년 살았어요.", "en": "I've lived in this house for 10 years."}, {"kr": "톰은 말을 타본 적이 없습니다.", "en": "Tom has never ridden a horse."}, {"kr": "케이트는 남미에 가본 적이 없습니다.", "en": "Kate hasn't been to South America."}, {"kr": "어떤 나라를 방문하셨나요?", "en": "What countries have you visited?"}, {"kr": "나는 커피는 좋아하지만, 차는 좋아하지 않아.", "en": "I like coffee, but I don't like tea."}, {"kr": "크리스는 외출을 자주 하지 않습니다.", "en": "Chris doesn't go out very often."}, {"kr": "가브리엘라는 혼자 사나요?", "en": "Does Gabriella live alone?"}, {"kr": "어제는 TV를 보지 않았어요.", "en": "I didn't watch TV yesterday."}, {"kr": "지난주에는 비가 내리지 않았습니다.", "en": "It didn't rain last week."}, {"kr": "에릭과 니콜은 언제 나갔나요? 에리카와 니콜은 언제 나갔나요?", "en": "What time did Eric and Nicole go out? What time did Erica and Nicole go out?"}, {"kr": "어제 방을 청소했어요.", "en": "I cleaned my room yesterday."}, {"kr": "닉은 대학에서 공학을 공부했습니다.", "en": "Nick studied engineering in college."}, {"kr": "저는 여기서 10년 살았어요.", "en": "I have lived here for 10 years."}, {"kr": "도시는 많이 바뀌었습니다.", "en": "The city has changed a lot."}, {"kr": "이 객실은 매일 청소됩니다.", "en": "These rooms are cleaned every day."}, {"kr": "사고로 내 차가 손상되었습니다.", "en": "My car was damaged in the accident."}, {"kr": "어제 케이크를 만들었어요.", "en": "I made a cake yesterday."}, {"kr": "나는 커피를 만들었다.", "en": "I have made some coffee."}, {"kr": "어젯밤에 누군가 이 창문을 깨뜨렸어요.", "en": "Somebody broke this window last night."}, {"kr": "누군가 이 창문을 깨뜨렸어요.", "en": "Somebody has broken this window."}, {"kr": "이 창문은 어젯밤에 깨졌어요.", "en": "This window was broken last night."}, {"kr": "그들은 테니스를 치고 있다.", "en": "They are playing tennis."}, {"kr": "내일 테니스를 쳐요. 그는 내일 테니스를 칠 예정이다.", "en": "I'm playing tennis tomorrow. He is playing tennis tomorrow."}, {"kr": "수와 아만다는 어디에 있나요? 그들은 공원에서 테니스를 치고 있다.", "en": "Where are Sue and Amanda? They're playing tennis in the park."}, {"kr": "앤드류는 내일 테니스를 칠 거예요.", "en": "Andrew is playing tennis tomorrow."}, {"kr": "저는 다음 주에는 일하지 않을 거예요.", "en": "I'm not working next week."}, {"kr": "내일 콘서트에 갈 거예요.", "en": "I'm going to a concert tomorrow."}, {"kr": "소피는 금요일에 치과에 갈 거예요 .", "en": "Sophie is going to the dentist on Friday."}, {"kr": "다음 주말에 파티를 열어요.", "en": "We're having a party next weekend."}, {"kr": "오늘 밤에 친구들을 만날 거예요?", "en": "Are you meeting your friends tonight?"}, {"kr": "내일 밤에는 무엇을 하시나요?", "en": "What are you doing tomorrow night?"}, {"kr": "나는 오늘 밤 외출하지 않을 거야. 저는 집에 있을 거예요.", "en": "I'm not going out tonight. I'm staying home."}, {"kr": "나는 내일 집에 있을 거야.", "en": "I'm staying home tomorrow."}, {"kr": "오늘 밤에 외출하시나요?", "en": "Are you going out tonight?"}, {"kr": "리사는 다음 주 파티에 오지 않을 거야 .", "en": "Lisa isn't coming to the party next week."}, {"kr": "우리 비행기는 내일 아침 7시 30분에 뉴욕에 도착합니다 .", "en": "Our plane arrives in New York at 7:30 tomorrow morning."}, {"kr": "오늘 밤 영화가 몇 시에 끝나나요?", "en": "What time does the movie end tonight?"}, {"kr": "몇 시에 출발하시나요?", "en": "What time are you leaving?"}, {"kr": "콘서트는 7시 30분에 시작합니다.", "en": "The concert starts at 7:30."}, {"kr": "비행기는 몇 시에 출발하나요?", "en": "What time does your plane leave?"}, {"kr": "나는 오늘 밤에 TV를 볼 것이다. 그녀는 오늘 밤에 TV를 볼 것이다.", "en": "I'm going to watch TV tonight. She is going to watch TV tonight."}, {"kr": "내일 책을 좀 사러 갈 거예요.", "en": "I'm going to buy some books tomorrow."}, {"kr": "사라는 자신의 차를 팔려고 합니다.", "en": "Sarah is going to sell her car."}, {"kr": "저는 오늘 아침 식사하지 않을 거예요 . 배고프지 않아요.", "en": "I'm not going to have breakfast this morning. I'm not hungry."}, {"kr": "다음 주 결혼식에 뭐 입고 갈 거야?", "en": "What are you going to wear to the wedding next week?"}, {"kr": "당신의 손은 더럽습니다. 네, 알아요. 저는 그것들을 씻을 거예요.", "en": "Your hands are dirty. Yes, I know. I'm going to wash them."}, {"kr": "맷을 파티에 초대할 거야 ?", "en": "Are you going to invite Matt to your party?"}, {"kr": "나는 내일 줄리아와 테니스를 친다.", "en": "I am playing tennis with Julia tomorrow."}, {"kr": "하늘을 보세요. 비가 올 거예요.", "en": "Look at the sky. It's going to rain."}, {"kr": "아, 아니요. 지금은 9시인데 아직 준비가 안 됐어요. 늦을 것 같아요.", "en": "Oh no, it's 9:00 and I'm not ready. I'm going to be late."}, {"kr": "사라는 매일 일하러 갑니다. 그녀는 항상 오전 8시 30분부터 오후 4시 30분까지 거기에 있습니다.", "en": "Sarah goes to work every day. She is always there from 8:30 until 4:30."}, {"kr": "지금은 11시입니다. 사라는 지금 직장에 있어요. 어제 11시에도 그녀는 직장에 있었습니다. 내일 오전 11시에도 그녀는 출근해 있을 것입니다.", "en": "It is 11:00 now. Sarah is at work. At 11:00 yesterday, she was at work. At 11:00 tomorrow, she will be at work."}, {"kr": "수는 여행을 많이 다닙니다. 오늘 그녀는 로스앤젤레스에 있습니다. 그녀는 내일 멕시코 시티에 있을 거예요. 다음 주에 그녀는 뉴욕에 갈 거예요.", "en": "Sue travels a lot. Today she is in Los Angeles. Tomorrow she'll be in Mexico City. Next week she'll be in New York."}, {"kr": "오래된 빵은 마당에 두세요. 새들이 그것을 먹을 것이다.", "en": "Leave the old bread in the yard. The birds will eat it."}, {"kr": "아마 오늘 밤에 나갈 것 같아요.", "en": "We'll probably go out tonight."}, {"kr": "오늘 오후에는 비가 오지 않을 것 같아요 .", "en": "I don't think it will rain this afternoon."}, {"kr": "내일 아침에 집에 올 거야?", "en": "Will you be home tomorrow morning?"}, {"kr": "나는 내일 여기 있지 않을 거야.", "en": "I won't be here tomorrow."}, {"kr": "잠자리에 들기 전에 커피를 마시지 마세요. 잠을 잘 수 없을 거야.", "en": "Don't drink coffee before you go to bed. You won't sleep well."}, {"kr": "내 여행 가방은 무겁습니다. 제가 운반해 드릴게요 .", "en": "My suitcase is heavy. I'll carry it for you."}, {"kr": "내일 전화할게요. 좋아요. 좋아요. 안녕.", "en": "I'll call you tomorrow. Okay. Okay. Bye."}, {"kr": "저녁으로 무엇을 먹을지 결정할 수 없어요. 알아요. 스파게티를 만들겠습니다.", "en": "I can't decide what to have for dinner. I know. I'll make spaghetti."}, {"kr": "오늘은 좋은 날이에요. 나는 밖에 앉을게요.", "en": "It's a nice day. I think I'll sit outside."}, {"kr": "비가 옵니다. 저는 나가지 않을 것 같아요.", "en": "It's raining. I don't think I'll go out."}, {"kr": "내일 전화할게요. 좋아요.", "en": "I'll call you tomorrow. Okay."}, {"kr": "나는 일찍 잠자리에 들 것 같다.", "en": "I think I'll go to bed early."}, {"kr": "우리는 토요일에 영화를 보러 갈 거예요. 우리와 함께 가실래요?", "en": "We're going to the movies on Saturday. Do you want to come with us?"}, {"kr": "나는 더 이상 차를 원하지 않는다. 팔려고요.", "en": "I don't want my car anymore. I'm going to sell it."}, {"kr": "내일 밤에 뭐 할 거야?", "en": "Are you doing anything tomorrow night?"}, {"kr": "휴가에는 어디로 가시나요? 잘 모르겠어요. 코스타리카에 갈 수도 있겠네요.", "en": "Where are you going for your vacation? I'm not sure. I might go to Costa Rica."}, {"kr": "그는 코스타리카로 갈 수도 있다.", "en": "He might go to Costa Rica."}, {"kr": "비가 올 수도 있어요.", "en": "It might rain."}, {"kr": "오늘 밤 영화를 보러 갈지도 모르겠지만, 잘 모르겠어요.", "en": "I might go to the movies tonight, but I'm not sure."}, {"kr": "레베카가 언제 전화할 거야? 모르겠습니다. 그녀는 오늘 오후에 전화할지도 몰라요.", "en": "When is Rebecca going to call you? I don't know. She might call this afternoon."}, {"kr": "우산을 가져가세요. 비가 올 수도 있어요.", "en": "Take an umbrella with you. It might rain."}, {"kr": "복권을 사세요. 운이 좋을 수도 있겠네요.", "en": "Buy a lottery ticket. You might be lucky."}, {"kr": "오늘 밤에 외출하시나요? 그럴 수도 있겠네요.", "en": "Are you going out tonight? I might."}, {"kr": "내일 테니스를 쳐요. 내일은 테니스를 칠지도 몰라요.", "en": "I'm playing tennis tomorrow. I might play tennis tomorrow."}, {"kr": "레베카는 나중에 전화할 거예요. 레베카가 나중에 전화할 수도 있어요.", "en": "Rebecca is going to call later. Rebecca might call later."}, {"kr": "내일은 출근하지 않을 수도 있어요.", "en": "I might not go to work tomorrow."}, {"kr": "수는 파티에 오지 않을 수도 있다.", "en": "Sue might not come to the party."}, {"kr": "오늘 밤 영화 보러 갈지도 몰라요.", "en": "I may go to the movies tonight."}, {"kr": "수는 파티에 오지 않을 수도 있다.", "en": "Sue may not come to the party."}, {"kr": "질문 하나 해도 될까요?", "en": "May I ask a question?"}, {"kr": "여기 앉아도 될까요? 확신하는.", "en": "May I sit here? Sure."}, {"kr": "저는 피아노를 칠 수 있어요. 그는 피아노를 칠 수 있다 .", "en": "I can play the piano. He can play the piano."}, {"kr": "문을 열어주시겠어요?", "en": "Could you open the door, please?"}, {"kr": "저는 피아노를 칠 수 있어요. 내 동생 도 피아노를 칠 수 있어요.", "en": "I can play the piano. My brother can play the piano, too."}, {"kr": "사라는 이탈리아어는 할 줄 알지만, 스페인어는 할 줄 모릅니다 .", "en": "Sarah can speak Italian, but she can't speak Spanish."}, {"kr": "수영을 할 수 있나요? 네, 하지만 저는 수영을 잘 못해요.", "en": "Can you swim? Yes, but I'm not a very good swimmer."}, {"kr": "20달러 지폐를 바꿀 수 있나요? 죄송하지만, 그럴 수 없어요.", "en": "Can you change a $20 bill? I'm sorry, I can't."}, {"kr": "다음 주에 파티를 열 예정인데 에릭 과 레이첼은 올 수 없어.", "en": "I'm having a party next week, but Eric and Rachel can't come."}, {"kr": "제가 어렸을 때는 매우 빨리 달릴 수 있었습니다.", "en": "When I was young, I could run very fast."}, {"kr": "마리아가 미국에 오기 전까지는 그녀는 영어를 별로 이해할 수 없었습니다.", "en": "Before Maria came to the United States, she couldn't understand much English."}, {"kr": "이제 그녀는 모든 것을 이해할 수 있습니다.", "en": "Now she can understand everything."}, {"kr": "어젯밤에는 피곤했지만, 잠을 잘 수 없었습니다 .", "en": "I was tired last night, but I couldn't sleep."}, {"kr": "지난주에 파티를 했는데 에릭과 레이첼이 오지 못했어요.", "en": "I had a party last week, but Eric and Rachel couldn't come."}, {"kr": "문을 열어주시겠어요?", "en": "Can you open the door, please? Could you open the door, please?"}, {"kr": "잠깐만 기다려 주시겠어요?", "en": "Can you wait a minute, please? Could you wait a minute, please?"}, {"kr": "물 한 잔 주시겠어요?", "en": "Can I have a glass of water, please? Could I have a glass of water, please?"}, {"kr": "여기 앉을 수 있나요?", "en": "Can I sit here?"}, {"kr": "톰, 우산 좀 빌릴 수 있을까요?", "en": "Tom, could I borrow your umbrella?"}, {"kr": "로렌은 오늘 출근하지 않아요. 그녀는 아픈 모양이다.", "en": "Lauren's not at work today. She must be sick."}, {"kr": "저녁이 되었는데 하루 종일 아무것도 먹지 않았어요. 당신은 배고프겠죠.", "en": "It's evening and you haven't eaten anything all day. You must be hungry."}, {"kr": "제 동생은 귀사에서 수년간 일해왔습니다. 당신은 그를 알고 있을 거예요.", "en": "My brother has worked at your company for years. You must know him."}, {"kr": "제 친구들은 당신과 같은 우편번호를 가지고 있어요 . 그들은 당신 근처에 살아야 합니다.", "en": "My friends have the same zip code as you. They must live near you."}, {"kr": "이 사람은 존이 아니야. 죄송합니다. 제가 잘못된 번호를 입력했나 봅니다.", "en": "This isn't John. I'm sorry. I must have the wrong number."}, {"kr": "전화가 여덟 번 울렸지만 메건은 전화를 받지 않았습니다. 그녀는 휴대전화를 가지고 있어서는 안 됩니다.", "en": "The phone rang eight times and Megan didn't answer. She must not have her phone with her."}, {"kr": "미구엘은 어디든 버스를 타고 다닙니다. 그는 차가 없어야 합니다.", "en": "Miguel takes the bus everywhere. He must not have a car."}, {"kr": "실바 가족은 항상 금요일에 집에 갑니다. 그러면 일을 해서는 안 됩니다.", "en": "The Silvas are always home on Fridays. They must not work then."}, {"kr": "건강을 유지하려면 잘 먹어야 합니다.", "en": "You must eat well if you want to be healthy."}, {"kr": "그들은 위험한 상황에 처해 있습니다. 그들은 조심해야 합니다.", "en": "They're in a dangerous situation. They must be careful."}, {"kr": "이 기계를 사용하는 작업자는 안전 안경을 착용해야 합니다.", "en": "Workers must wear safety glasses at this machine."}, {"kr": "미국에서는 투표하려면 18세가 되어야 합니다 .", "en": "In the United States, you must be 18 to vote."}, {"kr": "귀하의 국가 밖으로 여행하려면 여권이 필요합니다.", "en": "You must have a passport to travel outside your country."}, {"kr": "그들은 위험한 상황에 처해 있었습니다. 그들은 조심해야 했습니다.", "en": "They were in a dangerous situation. They had to be careful."}, {"kr": "지난주에 공장을 방문했을 때 우리는 안전 안경을 착용해야 했습니다.", "en": "We had to wear safety glasses when we visited the factory last week."}, {"kr": "자전거 타는 사람은 보도에서 자전거를 타면 안 됩니다 .", "en": "Bicyclists must not ride on the sidewalk."}, {"kr": "다시는 학교에 늦지 마세요.", "en": "You must not be late for school again."}, {"kr": "TV를 너무 많이 보면 안 돼.", "en": "You shouldn't watch TV so much."}, {"kr": "톰은 공부를 충분히 하지 않아요. 그는 더 열심히 공부해야 한다.", "en": "Tom doesn't study enough. He should study harder."}, {"kr": "좋은 영화예요. 꼭 가서 보세요.", "en": "It's a good movie. You should go and see it."}, {"kr": "테니스를 칠 때는 항상 공을 주시해야 합니다.", "en": "When you play tennis, you should always watch the ball."}, {"kr": "톰은 그렇게 늦게 잠자리에 들면 안 돼.", "en": "Tom shouldn't go to bed so late."}, {"kr": "당신은 항상 TV를 보죠. TV를 너무 많이 보면 안 돼.", "en": "You watch TV all the time. You shouldn't watch TV so much."}, {"kr": "레이첼이 새로운 옷을 사야 할 것 같아요 .", "en": "I think Rachel should buy some new clothes."}, {"kr": "늦었어요. 이제 집에 가야 할 것 같아요.", "en": "It's late. I think I should go home now."}, {"kr": "그렇게 열심히 일할 필요는 없다고 생각해요.", "en": "I don't think you should work so hard."}, {"kr": "이 모자를 사야 할까요?", "en": "Do you think I should buy this hat?"}, {"kr": "오늘 밤은 공부를 해야 하지만, 영화를 보러 갈까 생각 중이에요.", "en": "I should study tonight, but I think I'll go to the movies."}, {"kr": "오늘 밤 공부해야 해요. 저는 영화 보러 갈 수 없어요 .", "en": "I have to study tonight. I can't go to the movies."}, {"kr": "이 방은 정말 따뜻하네요. 창문을 열어야 할까요?", "en": "It's very warm in this room. Should I open the window?"}, {"kr": "오늘 밤에 전화할까? 좋아요.", "en": "Should I call you tonight? Okay."}, {"kr": "오늘은 좋은 날이에요. 산책하러 갈까요?", "en": "It's a nice day. Should we go for a walk?"}, {"kr": "저녁에는 뭘 먹을까요?", "en": "What should we have for dinner?"}, {"kr": "오늘 밤에 전화할까? 좋아요.", "en": "Shall I call you tonight? Okay."}, {"kr": "오늘은 좋은 날이에요. 산책하러 갈까요?", "en": "It's a nice day. Shall we go for a walk?"}, {"kr": "이게 내 약이야. 하루에 세 번씩 먹어야 해요.", "en": "This is my medicine. I have to take it three times a day."}, {"kr": "내일 출근이 늦어질 것 같아요. 치과에 가야 해요.", "en": "I'll be late for work tomorrow. I have to go to the dentist."}, {"kr": "메건은 오전 7시에 일을 시작하므로 오전 6시에 일어나야 합니다.", "en": "Megan starts work at 7:00, so she has to get up at 6:00."}, {"kr": "운전면허를 받으려면 시험에 합격해야 합니다.", "en": "You have to pass a test before you can get a driver's license."}, {"kr": "어제는 출근이 늦었습니다. 치과에 가야만 했어요.", "en": "I was late for work yesterday. I had to go to the dentist."}, {"kr": "우리는 어젯밤 걸어서 집에 가야 했어요. 버스는 없었습니다.", "en": "We had to walk home last night. There were no buses."}, {"kr": "내일 치과에 몇 시에 가야 하나요?", "en": "What time do you have to go to the dentist tomorrow?"}, {"kr": "메건은 토요일에도 일해야 하나요?", "en": "Does Megan have to work on Saturdays?"}, {"kr": "그들은 왜 일찍 파티를 떠나야 했을까 ?", "en": "Why did they have to leave the party early?"}, {"kr": "내일은 일하지 않으니까 일찍 일어날 필요가 없어요.", "en": "I'm not working tomorrow, so I don't have to get up early."}, {"kr": "마이크는 별로 열심히 일할 필요가 없습니다. 그는 쉬운 직업을 가지고 있어요.", "en": "Mike doesn't have to work very hard. He's got an easy job."}, {"kr": "우리는 버스를 기다리는 데 그리 오랜 시간이 걸리지 않았습니다 . 몇 분 만에 답장이 왔습니다.", "en": "We didn't have to wait very long for the bus. It came in a few minutes."}, {"kr": "운전면허를 받으려면 시험에 합격해야 합니다.", "en": "You must (/have to) pass a test before you can get a driver's license."}, {"kr": "많은 나라에서는 남자도 군복무를 해야 합니다 .", "en": "In many countries, men must (/have to) do military service."}, {"kr": "커피 한잔 드시겠어요? 아니요. 고맙습니다 .", "en": "Would you like some coffee? No. Thank you."}, {"kr": "사탕 한 조각 드시겠어요? 네, 그러세요.", "en": "Would you like a piece of candy? Yes, please."}, {"kr": "어떤 걸 원하시나요? 차나 커피? 차 주세요.", "en": "Which would you like? Tea or coffee? Tea, please."}, {"kr": "산책하러 가시겠어요?", "en": "Would you like to go for a walk?"}, {"kr": "일요일에 저녁 식사하러 오실래요? 네, 정말 그러고 싶습니다.", "en": "Would you like to come for dinner on Sunday? Yes, I'd love to."}, {"kr": "오늘 밤에 무엇을 하고 싶으신가요?", "en": "What would you like to do tonight?"}, {"kr": "목이 마르다. 음료 한잔 주세요.", "en": "I'm thirsty. I'd like a drink."}, {"kr": "호텔에 대한 정보를 좀 알려주시길 바랍니다.", "en": "I'd like some information about hotels, please."}, {"kr": "피곤해요. 나는 오늘 밤 집에 머물고 싶다 .", "en": "I'm feeling tired. I'd like to stay home tonight."}, {"kr": "커피 한잔 드시겠어요? 네, 그러세요.", "en": "Would you like some coffee? Yes, please."}, {"kr": "오늘 밤 영화 보러 가시겠어요? 네, 정말 그러고 싶습니다.", "en": "Would you like to go to the movies tonight? Yes, I'd love to."}, {"kr": "오렌지 한 개 주세요.", "en": "I'd like an orange, please."}, {"kr": "다음 주말에는 무엇을 하고 싶으신가요?", "en": "What would you like to do next weekend?"}, {"kr": "커피를 좋아하시나요? 네, 그렇습니다. 지금 드시겠어요 ? 아니요, 괜찮습니다. 지금은 아니에요.", "en": "Do you like coffee? Yes, I do. Would you like some now? No, thank you. Not now."}, {"kr": "영화 보러 가는 걸 좋아하시나요? 네, 저는 영화를 자주 보러 가요.", "en": "Do you like to go to the movies? Yes, I go to the movies a lot."}, {"kr": "나는 오렌지를 좋아해요.", "en": "I like oranges."}, {"kr": "주말에는 무엇을 하는 걸 좋아하시나요?", "en": "What do you like to do on weekends?"}, {"kr": "여기 앉으시겠어요? 괜찮습니다. 나는 바닥에 앉는 게 낫다.", "en": "Would you like to sit here? No thanks. I'd rather sit on the floor."}, {"kr": "안나는 바닥에 앉는 것을 좋아해요. 그녀는 의자에 앉고 싶어하지 않습니다.", "en": "Anna likes to sit on the floor. She doesn't want to sit on a chair."}, {"kr": "그래서 그녀는\"저는 바닥에 앉아 있는 게 더 좋아요\"라고 말합니다.", "en": "So, she says, \"I'd rather sit on the floor.\""}, {"kr": "저는 별로 외출하고 싶지 않아요. 나는 집에 머무르는 게 낫다.", "en": "I don't really want to go out. I'd rather stay home."}, {"kr": "이제 가야 하나요? 아니요, 아직은요. 나는 나중까지 기다리는 게 낫다고 생각한다.", "en": "Should we go now? No, not yet. I'd rather wait until later."}, {"kr": "나는 지금 가고 싶은데, 톰은 나중까지 기다리고 싶어해.", "en": "I'd like to go now, but Tom would rather wait until later."}, {"kr": "나는 늦는 것을 좋아하지 않는다. 나는 일찍 가는 게 낫다 .", "en": "I don't like to be late. I'd rather be early."}, {"kr": "피곤해요. 나는 오늘 밤은 외출하고 싶지 않다 .", "en": "I'm feeling tired. I'd rather not go out tonight."}, {"kr": "수는 피곤함을 느낀다. 그녀는 오늘 밤은 외출하고 싶지 않았습니다.", "en": "Sue is feeling tired. She'd rather not go out tonight."}, {"kr": "우리는 배고프지 않아요. 우리는 아직 먹지 않는 게 낫겠어요 .", "en": "We're not hungry. We'd rather not eat yet."}, {"kr": "오늘 밤에 외출하실래요? 나는 그러지 않겠어요.", "en": "Would you like to go out tonight? I'd rather not."}, {"kr": "우유를 마시겠습니까, 아니면 주스를 마시겠습니까? 주스 주세요.", "en": "Would you rather have milk or juice? Juice, please."}, {"kr": "당신은 어느 쪽을 선택하시겠습니까? 영화관에 갈까요, 아니면 집에서 영화를 볼까요?", "en": "Which would you rather do? Go to the movie theater or watch a movie at home?"}, {"kr": "나는 바닥에 앉는 게 낫다.", "en": "I'd rather sit on the floor."}, {"kr": "수는 나가고 싶지 않았다.", "en": "Sue would rather not go out."}, {"kr": "나는 바닥에 앉는 것을 선호한다.", "en": "I'd prefer to sit on the floor."}, {"kr": "수는 외출하고 싶지 않았습니다.", "en": "Sue would prefer not to go out."}, {"kr": "나는 집에 있는 것보다는 나가서 지내는 게 낫다.", "en": "I'd rather go out than stay home."}, {"kr": "나는 고양이보다 개를 키우고 싶다.", "en": "I'd rather have a dog than a cat."}, {"kr": "우리는 집에서 영화를 보는 것보다 영화관에 가는 것을 더 좋아한다 .", "en": "We'd rather go to the movie theater than watch a movie at home."}, {"kr": "지금은 여기보다 집에 있는 게 낫겠어요 .", "en": "I'd rather be at home right now than here."}, {"kr": "오세요. 들어오세요.", "en": "Come in."}, {"kr": "조심하세요. 넘어지지 마세요.", "en": "Be careful. Don't fall."}, {"kr": "여기 와서 이걸 보세요. 그것은 무엇입니까?", "en": "Come here and look at this. What is it?"}, {"kr": "나는 당신과 이야기하고 싶지 않아요. 저리 가요.", "en": "I don't want to talk to you. Go away."}, {"kr": "아직 준비가 안 됐어요. 잠시만 기다려 주세요.", "en": "I'm not ready yet. Please wait for me."}, {"kr": "좋은 휴가 보내세요. 좋은 여행 되세요. 좋은 시간 보내세요. 즐거운 시간 보내세요.", "en": "Have a good vacation. Have a good trip. Have a nice time. Have fun."}, {"kr": "맛있는 식사하세요. 파티를 즐기세요.", "en": "Enjoy your meal. Enjoy the party."}, {"kr": "안녕히 주무세요. 잘 자다.", "en": "Good night. Sleep well."}, {"kr": "초콜릿을 드세요. 아, 고맙네요.", "en": "Have a chocolate. Oh, thanks."}, {"kr": "조심하세요. 넘어지지 마세요. ", "en": "Be careful. Don't fall."}, {"kr": "가지 마세요. 나와 함께 여기 머물러요. ", "en": "Please don't go. Stay here with me."}, {"kr": "시간에 맞춰 도착하세요. 늦지 마세요.", "en": "Be here on time. Don't be late."}, {"kr": "오늘은 좋은 날이에요. 나가자. ", "en": "It's a nice day. Let's go out."}, {"kr": "어서 해봐요. 춤을 추자.", "en": "Come on. Let's dance. "}, {"kr": "준비되셨나요? 갑시다.", "en": "Are you ready? Let's go."}, {"kr": "오늘 저녁은 생선으로 먹자.", "en": "Let's have fish for dinner tonight."}, {"kr": "오늘 밤에 외출할까요? 아니요, 피곤해요. 집에 머물자.", "en": "Should we go out tonight? No, I'm tired. Let's stay home."}, {"kr": "추워요. 밖에 나가지 말자. 집에 머물자.", "en": "It's cold. Let's not go out. Let's stay home."}, {"kr": "오늘 밤은 생선을 먹지 말자. 닭고기를 먹자.", "en": "Let's not have fish for dinner tonight. Let's have chicken."}, {"kr": "지붕 위에 남자가 있어요.", "en": "There's a man on the roof."}, {"kr": "10시 30분에 기차가 있어요.", "en": "There's a train at 10:30."}, {"kr": "일주일은 7일입니다.", "en": "There are seven days in a week."}, {"kr": "마당에 큰 나무가 있어요.", "en": "There's a big tree in the yard."}, {"kr": "오늘 밤은 TV에서 볼 게 없어요.", "en": "There's nothing on TV tonight."}, {"kr": "돈이 있나요? 네, 제 지갑에 있어요.", "en": "Do you have any money? Yes, there's some in my wallet."}, {"kr": "실례합니다. 이 근처에 호텔이 있나요? 네, 있습니다. 아니요, 없습니다.", "en": "Excuse me. Is there a hotel near here? Yes, there is. No, there isn't."}, {"kr": "우리는 스키를 타러 갈 수 없어. 눈이 없습니다.", "en": "We can't go skiing. There isn't any snow."}, {"kr": "마당에는 큰 나무가 몇 그루 있습니다.", "en": "There are some big trees in the yard."}, {"kr": "이 도로에서는 사고가 많이 발생합니다 .", "en": "There are a lot of accidents on this road."}, {"kr": "근처에 식당이 있나요? 네, 있습니다. 아니요, 없습니다.", "en": "Are there any restaurants near here? Yes, there are. No, there aren't."}, {"kr": "이 식당은 매우 조용해요. 여기에는 사람이 별로 없어요.", "en": "This restaurant is very quiet. There aren't many people here."}, {"kr": "축구팀에는 선수가 몇 명이나 있나요 ?", "en": "How many players are there on a soccer team?"}, {"kr": "축구팀에는 11명의 선수가 있습니다.", "en": "There are 11 players on a soccer team."}, {"kr": "테이블 위에 책이 있어요.", "en": "There's a book on the table."}, {"kr": "이 책이 좋아요. 흥미롭네요.", "en": "I like this book. It's interesting."}, {"kr": "무슨 소리야? 그것은 기차입니다. 10시 30분에 기차가 있어요. 빠른 기차예요.", "en": "What's that noise? It's a train. There's a train at 10:30. It's a fast train."}, {"kr": "수프에 소금이 많이 들어가요. 나는 수프를 좋아하지 않아. 너무 짜다.", "en": "There's a lot of salt in the soup. I don't like the soup. It's too salty."}, {"kr": "수프에 소금이 많이 들어가요. 나는 이 수프를 좋아하지 않아. 너무 짜다.", "en": "There's a lot of salt in the soup. I don't like this soup. It's too salty."}, {"kr": "매시간 기차가 있습니다. 현재 시간은 11시 15분입니다. 11시에 기차가 있었습니다.", "en": "There is a train every hour. The time now is 11:15. There was a train at 11:00."}, {"kr": "오늘 밤은 TV에서 볼 게 없어요.", "en": "There is nothing on TV tonight."}, {"kr": "우리는 매우 큰 호텔에 머물고 있어요. 객실은 1,250개입니다.", "en": "We are staying at a very big hotel. There are 1,250 rooms."}, {"kr": "모든 게 괜찮아요? 문제가 있나요?", "en": "Is everything okay? Are there any problems?"}, {"kr": "배고픈데 먹을 게 없어요.", "en": "I'm hungry, but there isn't anything to eat."}, {"kr": "어젯밤에는 TV에 아무것도 나오지 않았습니다.", "en": "There was nothing on TV last night."}, {"kr": "우리는 매우 큰 호텔에 머물렀습니다. 방은 1,250개였습니다.", "en": "We stayed at a very big hotel. There were 1,250 rooms."}, {"kr": "어제는 괜찮았나요? 문제가 있었나요?", "en": "Was everything okay yesterday? Were there any problems?"}, {"kr": "집에 도착했을 때 배가 고팠는데 고기가 하나도 없었어요.", "en": "I was hungry when I got home, but there wasn't anything meat."}, {"kr": "보세요, 사고가 났어요.", "en": "Look, there's been an accident."}, {"kr": "이 도로는 매우 위험해요. 사고가 많이 일어났습니다.", "en": "This road is very dangerous. There have been a lot of accidents."}, {"kr": "어젯밤에 사고가 났어요.", "en": "There was an accident last night."}, {"kr": "내일 오후에는 비가 올 것입니다. ", "en": "There will be rain tomorrow afternoon. "}, {"kr": "토요일 파티에 많은 사람이 올 것 같아요?", "en": "Do you think there will be a lot of people at the party on Saturday?"}, {"kr": "회사 사장이 떠난다. 그러면 곧 새로운 대통령이 나올 겁니다.", "en": "The president of the company is leaving. So, there will be a new president soon."}, {"kr": "나는 내일 외출할 거야.", "en": "I'm going out of town tomorrow."}, {"kr": "내일은 시간이 없을 테니 오늘 짐을 싸고 있어요.", "en": "I'm packing my things today because there won't be time tomorrow."}, {"kr": "지금은 몇 시야? 지금은 10시 30분이에요. 늦었어요. 이제 집으로 갈 시간이에요.", "en": "What time is it? It's 10:30. It's late. It's time to go home."}, {"kr": "오늘은 무슨 요일이에요? 목요일이에요. 3월 16일이에요. 어제는 제 생일이었어요.", "en": "What day is it? It's Thursday. It's March 16th. It was my birthday yesterday."}, {"kr": "우리 집에서 시내 중심가까지는 2마일이에요.", "en": "It's 2 miles from our house to downtown."}, {"kr": "뉴욕에서 로스앤젤레스까지 얼마나 떨어져 있나요 ?", "en": "How far is it from New York to Los Angeles?"}, {"kr": "여기에서 공항까지는 거리가 멀어요 .", "en": "It's a long way from here to the airport."}, {"kr": "우리는 걸어서 집에 갈 수 있어요. 그리 멀지 않아요. ", "en": "We can walk home. It isn't far."}, {"kr": "비가 옵니다. 비가 오지 않아요. 눈이 오고 있나요?", "en": "It's raining. It isn't raining. Is it snowing?"}, {"kr": "여기는 비가 많이 옵니다. 어제는 비가 오지 않았어요 . 눈이 자주 오나요?", "en": "It rains a lot here. It didn't rain yesterday. Does it snow very often?"}, {"kr": "따뜻해요. 더워요. 추워요. 좋네요. 흐려요. 바람이 많이 불어요. 날씨가 맑아요.", "en": "It's warm. It's hot. It's cold. It's nice. It's cloudy. It's windy. It's sunny."}, {"kr": "날씨가 맑아요. 건조해요. 습도가 높아요. 비가 옵니다. 안개가 끼네요. 어둡습니다.", "en": "It's clear. It's dry. It's humid. It's rainy. It's foggy. It's dark."}, {"kr": "오늘은 좋은 날이네요. 오늘은 날씨가 좋네요.", "en": "It's a nice day today."}, {"kr": "겨울에는 비가 많이 옵니다.", "en": "It rains a lot in the winter. It's very rainy in the winter. There is a lot of rain in the winter."}, {"kr": "어제는 바람이 매우 불었습니다. 어제는 바람이 강했습니다.", "en": "It was very windy yesterday. There was a strong wind yesterday."}, {"kr": "다시 만나서 반갑습니다.", "en": "It's nice to see you again."}, {"kr": "그녀를 이해하는 것은 불가능하다.", "en": "It's impossible to understand her."}, {"kr": "당신의 집을 찾는 건 쉽지 않았어요.", "en": "It wasn't easy to find your house."}, {"kr": "또 비가 옵니다.", "en": "It's raining again."}, {"kr": "당신이 댈러스로 이사한다는 건 사실인가요?", "en": "Is it true that you're moving to Dallas?"}, {"kr": "나는 피곤하지 않아. 그래요. 그녀는 피곤하지 않지만 그는 피곤해요.", "en": "I'm not tired. I am. She isn't tired, but he is."}, {"kr": "당신은 차(tea)를 좋아하시나요? 네, 그렇습니다. 아니요, 그렇지 않아요. 그는 차를 좋아하지만, 그녀는 그렇지 않습니다.", "en": "Do you like tea? Yes, I do. No, I don't. He likes tea, but she doesn't."}, {"kr": "저는 그 영화를 보지 못했지만, 제 여동생은 봤어요.", "en": "I haven't seen the movie, but my sister has."}, {"kr": "도와주세요. 죄송하지만 그럴 수 없습니다.", "en": "Please help me. I'm sorry I can't."}, {"kr": "피곤하신가요? 그랬지만, 지금은 그렇지 않아요.", "en": "Are you tired? I was, but I'm not now."}, {"kr": "메건이 우리를 보러 올 것 같아? 그럴 수도 있겠지.", "en": "Do you think Megan will come and see us? She might."}, {"kr": "오늘 밤에 공부할 거야? 그래야 겠지만, 아마 안 할 것 같아요.", "en": "Are you going to study tonight? I should, but I probably won't."}, {"kr": "그녀는 피곤하지 않지만 그는 피곤해요.", "en": "She isn't tired, but he is."}, {"kr": "제 여동생은 그 영화를 봤지만, 저는 못 봤어요.", "en": "My sister has seen the movie, but I haven't."}, {"kr": "내일 메건과 같이 일하시나요? 나는 그렇지만, 메건은 그렇지 않아.", "en": "Are you and Megan working tomorrow? I am, but Megan isn't."}, {"kr": "피곤하신가요? 네, 그렇습니다. 아니, 그렇지 않아요. ", "en": "Are you tired? Yes, I am. No, I'm not. "}, {"kr": "내일 빌이 여기 올까요? 네, 그럴 겁니다. 아니, 그러지 않을 거야.", "en": "Will Bill be here tomorrow? Yes, he will. No, he won't."}, {"kr": "공항으로 가는 버스가 있나요? 네, 있습니다. 아니요, 없습니다.", "en": "Is there a bus to the airport? Yes, there is. No, there isn't."}, {"kr": "나는 더운 날씨를 좋아하지 않지만 수는 더운 날씨를 좋아해요. .", "en": "I don't like hot weather, but Sue does."}, {"kr": "수는 열심히 일하지만, 나는 그렇지 않아요.", "en": "Sue works hard, but I don't."}, {"kr": "당신은 당신의 일을 즐기시나요? 네, 그렇습니다.", "en": "Do you enjoy your work? Yes, I do."}, {"kr": "당신과 크리스는 영화를 좋아했나요? 나는 그랬지만 크리스는 그렇지 않았어요.", "en": "Did you and Chris like the movie? I did, but Chris didn't."}, {"kr": "즐거운 시간을 보냈어요. 나도 그랬어요.", "en": "I had a good time. I did, too."}, {"kr": "어제는 비가 내렸나요? 아니, 그렇지 않았어요.", "en": "Did it rain yesterday? No, it didn't."}];
+
+const TOTAL = SENTENCES.length;
+const DAILY_TARGET = 20;
+const BOX_INTERVALS = [1,2,4,7,15];
+const STORAGE_KEY = 'giu_leitner_v1';
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function addDays(dateStr, n){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function defaultState(){
+  return {
+    cursor: 0,
+    cards: {},
+    session: null,
+    history: [],
+    voice: { rate: 1, auto: true },
+  };
+}
+
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const merged = Object.assign(defaultState(), parsed);
+    merged.voice = Object.assign(defaultState().voice, parsed.voice||{});
+    return merged;
+  }catch(e){ return defaultState(); }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ showToast('저장에 실패했습니다.'); }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------------- text-to-speech ---------------- */
+let ttsBusy = false;
+function speak(text, lang, rateOverride){
+  if(!('speechSynthesis' in window)){ showToast('이 브라우저는 음성 재생을 지원하지 않습니다.'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  u.rate = rateOverride || state.voice.rate || 1;
+  ttsBusy = true;
+  u.onend = ()=>{ ttsBusy=false; updatePlayingClass(false); };
+  u.onerror = ()=>{ ttsBusy=false; updatePlayingClass(false); };
+  updatePlayingClass(true);
+  window.speechSynthesis.speak(u);
+}
+function updatePlayingClass(on){
+  const b = document.getElementById('playBtn');
+  if(b) b.classList.toggle('playing', on);
+}
+
+/* ---------------- scheduling logic ---------------- */
+
+function getDueIds(){
+  const today = todayStr();
+  const due = [];
+  for(const id in state.cards){
+    const c = state.cards[id];
+    if(c.nextDue <= today) due.push({id:Number(id), due:c.nextDue});
+  }
+  due.sort((a,b)=> a.due < b.due ? -1 : (a.due>b.due?1:0));
+  return due.map(d=>d.id);
+}
+
+function buildTodaySession(){
+  const today = todayStr();
+  const due = getDueIds();
+  let ids = due.slice(0, DAILY_TARGET);
+  if(ids.length < DAILY_TARGET){
+    let need = DAILY_TARGET - ids.length;
+    let c = state.cursor;
+    const newIds = [];
+    while(need>0 && c < TOTAL){ newIds.push(c); c++; need--; }
+    state.cursor = c;
+    ids = ids.concat(newIds);
+  }
+  state.session = { date: today, ids, idx:0, correct:0, wrong:0, perfect:0, completed: ids.length===0 };
+  save();
+}
+
+function gradeCurrent(action){
+  const s = state.session;
+  const id = s.ids[s.idx];
+  const today = s.date;
+  let c = state.cards[id] || {box:0, nextDue:today};
+  if(action==='perfect'){
+    c.box = BOX_INTERVALS.length-1;
+    s.correct++; s.perfect = (s.perfect||0)+1;
+  } else if(action==='good'){
+    c.box = Math.min(c.box+1, BOX_INTERVALS.length-1);
+    s.correct++;
+  } else {
+    c.box = 0;
+    s.wrong++;
+  }
+  c.nextDue = addDays(today, BOX_INTERVALS[c.box]);
+  state.cards[id] = c;
+  s.idx++;
+  if(s.idx >= s.ids.length){
+    s.completed = true;
+    state.history.push({date: s.date, total: s.ids.length, correct: s.correct, wrong: s.wrong, perfect: s.perfect||0});
+    if(state.history.length>200) state.history.shift();
+  }
+  save();
+}
+
+function masteryStats(){
+  const boxCounts = [0,0,0,0,0];
+  let studied = 0;
+  for(const id in state.cards){
+    const c = state.cards[id];
+    boxCounts[c.box]++;
+    studied++;
+  }
+  const notStarted = TOTAL - studied;
+  return {boxCounts, studied, notStarted};
+}
+
+/* ---------------- rendering ---------------- */
+
+const app = document.getElementById('app');
+let route = 'home';
+let revealed = false;
+let showVoiceSettings = false;
+
+function render(){
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  if(route==='home') renderHome();
+  else if(route==='study') renderStudy();
+  else if(route==='stats') renderStats();
+  else if(route==='settings') renderSettings();
+}
+
+function header(title, back, customRight){
+  const rightHtml = customRight ? customRight
+    : (back? `<button class="icon-btn" onclick="goHome()">✕</button>` : `<button class="icon-btn" onclick="route='settings';render()">⚙</button>`);
+  return `<header class="top">
+    <div class="brand">${title}<small>GRAMMAR IN USE · LEITNER</small></div>
+    ${rightHtml}
+  </header>`;
+}
+
+function renderHome(){
+  const {boxCounts, studied, notStarted} = masteryStats();
+  const dueCount = getDueIds().length;
+  const maxCount = Math.max(1, ...boxCounts);
+
+  let ctaBig = '학습하기';
+  let ctaSmall = `오늘 ${DAILY_TARGET}개 학습`;
+  if(state.session && state.session.date===todayStr()){
+    if(state.session.completed){
+      ctaBig = '오늘 학습 완료 ✓';
+      ctaSmall = '한 번 더 복습하려면 눌러주세요';
+    } else {
+      ctaBig = '이어서 학습하기';
+      ctaSmall = `${state.session.idx} / ${state.session.ids.length} 진행 중`;
+    }
+  }
+
+  const shelfBooks = boxCounts.map((n,i)=>{
+    const h = Math.round((n/maxCount)*100);
+    return `<div class="book"><div class="num">${i+1}</div><div class="fill" style="height:${h}%"></div><div class="count">${n}</div></div>`;
+  }).join('');
+
+  app.innerHTML = `
+    ${header('그래머 인 유스')}
+    <main>
+      <div class="shelf">
+        <div class="shelf-title">라이트너 박스 현황</div>
+        <div class="shelf-row">${shelfBooks}</div>
+        <div class="shelf-caption"><span>박스 1 (초기)</span><span>박스 5 (숙달)</span></div>
+      </div>
+      <div class="pillrow">
+        <div class="pill"><div class="n">${studied}</div><div class="l">학습 시작</div></div>
+        <div class="pill"><div class="n">${dueCount}</div><div class="l">오늘 복습 대상</div></div>
+        <div class="pill"><div class="n">${notStarted}</div><div class="l">아직 안 본 문장</div></div>
+      </div>
+      <button class="cta" onclick="startStudy()">
+        <div class="big">${ctaBig}</div>
+        <div class="small">${ctaSmall}</div>
+      </button>
+      <div class="secrow">
+        <div class="secbtn" onclick="route='stats';render()">📊 통계</div>
+        <div class="secbtn" onclick="route='settings';render()">⚙ 설정</div>
+        <div class="secbtn" onclick="triggerHomeImport()">⬆ 진도 불러오기</div>
+      </div>
+      <input type="file" id="homeImportInput" accept="application/json,.json" style="display:none" onchange="handleHomeImportFile(event)">
+      ${notStarted===0 && dueCount===0 ? `<div class="emptynote">전체 ${TOTAL}개 문장을 모두 학습했고, 오늘 복습할 문장은 없습니다. 내일 다시 확인해 보세요.</div>` : ''}
+    </main>
+  `;
+}
+
+function startStudy(){
+  if(!state.session || state.session.date!==todayStr()){
+    buildTodaySession();
+  } else if(state.session.completed){
+    state.session.idx = 0; state.session.correct = 0; state.session.wrong = 0;
+    state.session.completed = state.session.ids.length===0;
+    save();
+  }
+  if(state.session.ids.length===0){ showToast('오늘 학습할 문장이 없습니다.'); return; }
+  revealed = false; showVoiceSettings = false;
+  route='study'; render();
+}
+
+function goHome(){ route='home'; render(); }
+
+function endStudy(){
+  exportData();
+  showToast('학습 현황을 백업하고 종료합니다.');
+  goHome();
+}
+
+function renderStudy(){
+  const s = state.session;
+  if(!s){ goHome(); return; }
+  if(s.completed){ renderComplete(); return; }
+
+  const item = SENTENCES[s.ids[s.idx]];
+  const cardNum = s.ids[s.idx]+1;
+  const box = (state.cards[s.ids[s.idx]] ? state.cards[s.ids[s.idx]].box : 0);
+
+  const dots = [0,1,2,3,4].map(i=>`<div class="dot ${i===box?'active':''}"></div>`).join('');
+
+  app.innerHTML = `
+    ${header('학습하기', true, `<button class="endbtn" onclick="endStudy()">학습종료</button>`)}
+    <div class="studytop"><div class="daytag">오늘 ${s.idx+1} / ${s.ids.length}</div></div>
+    <div class="dots">${dots}</div>
+    <div class="studycard">
+      <div class="kr">${escapeHtml(item.kr)}</div>
+      <div class="meta">${cardNum}번 · Box ${box+1} / 5</div>
+    </div>
+    <div class="answerbox" id="answerBox">
+      ${revealed
+        ? `<div class="en">${escapeHtml(item.en)}</div>`
+        : `<div class="hint">영어로 말해본 뒤, 정답을 확인하세요</div>`}
+    </div>
+    <div class="ctrlrow">
+      <button class="ctrlbtn" id="playBtn" onclick="event.stopPropagation();playCurrent()">▶</button>
+      <button class="ctrlbtn" onclick="event.stopPropagation();replaySlow()">↻</button>
+      <button class="ctrlbtn" onclick="event.stopPropagation();toggleVoiceSettings()">⚙</button>
+    </div>
+    ${showVoiceSettings ? voiceSettingsHtml() : ''}
+    ${revealed ? `
+      <div class="gradebtns">
+        <button class="gradebtn again" onclick="answer('again')"><span class="badge">↺</span>AGAIN</button>
+        <button class="gradebtn good" onclick="answer('good')"><span class="badge">✓</span>GOOD</button>
+        <button class="gradebtn perfect" onclick="answer('perfect')"><span class="badge">★</span>PERFECT</button>
+      </div>
+    ` : ''}
+  `;
+  document.getElementById('answerBox').addEventListener('click', ()=>{ if(!revealed) reveal(); });
+}
+
+function voiceSettingsHtml(){
+  const r = state.voice.rate;
+  return `
+    <div class="settingspop">
+      <div class="row">
+        <div><div class="t">읽기 속도</div><div class="d">음성 재생 빠르기를 조절합니다.</div></div>
+        <div class="segbtns">
+          <button class="segbtn ${r===0.75?'sel':''}" onclick="setRate(0.75)">느리게</button>
+          <button class="segbtn ${r===1?'sel':''}" onclick="setRate(1)">보통</button>
+          <button class="segbtn ${r===1.25?'sel':''}" onclick="setRate(1.25)">빠르게</button>
+        </div>
+      </div>
+      <div class="row">
+        <div><div class="t">자동 재생</div><div class="d">정답을 확인할 때 영어 문장을 자동으로 읽어줍니다.</div></div>
+        <div class="switch ${state.voice.auto?'on':''}" onclick="toggleAuto()"><div class="knob"></div></div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleVoiceSettings(){ showVoiceSettings = !showVoiceSettings; render(); }
+function setRate(r){ state.voice.rate = r; save(); render(); }
+function toggleAuto(){ state.voice.auto = !state.voice.auto; save(); render(); }
+
+function playCurrent(){
+  const s = state.session;
+  const item = SENTENCES[s.ids[s.idx]];
+  if(!revealed){ revealed = true; render(); }
+  speak(item.en, 'en-US');
+}
+function replaySlow(){
+  const s = state.session;
+  const item = SENTENCES[s.ids[s.idx]];
+  if(!revealed){ revealed = true; render(); }
+  speak(item.en, 'en-US', 0.7);
+}
+
+function reveal(){
+  revealed = true;
+  render();
+  if(state.voice.auto){
+    const s = state.session;
+    const item = SENTENCES[s.ids[s.idx]];
+    setTimeout(()=>speak(item.en,'en-US'), 200);
+  }
+}
+function answer(action){
+  gradeCurrent(action);
+  revealed = false;
+  render();
+}
+
+function renderComplete(){
+  const s = state.session;
+  app.innerHTML = `
+    ${header('학습하기', true)}
+    <main>
+      <div class="complete">
+        <div class="title">오늘 학습 완료!</div>
+        <div class="sub">${s.date} · 총 ${s.ids.length}개 문장</div>
+        <div class="resultrow">
+          <div class="resultbox ng"><div class="n">${s.wrong}</div><div class="l">AGAIN</div></div>
+          <div class="resultbox ok"><div class="n">${s.correct - (s.perfect||0)}</div><div class="l">GOOD</div></div>
+          <div class="resultbox pf"><div class="n">${s.perfect||0}</div><div class="l">PERFECT</div></div>
+        </div>
+      </div>
+      <button class="cta" onclick="goHome()">
+        <div class="big">홈으로</div>
+        <div class="small">내일 또 만나요</div>
+      </button>
+    </main>
+  `;
+}
+
+function renderStats(){
+  const {boxCounts, studied, notStarted} = masteryStats();
+  const hist = state.history.slice().reverse().slice(0,30);
+  const histHtml = hist.length ? hist.map(h=>`
+    <div class="histrow">
+      <span class="d">${h.date}</span>
+      <span class="res"><span class="ok">✓${h.correct}</span>&nbsp;&nbsp;<span class="ng">✗${h.wrong}</span>&nbsp;&nbsp;/ ${h.total}</span>
+    </div>
+  `).join('') : `<div class="nodata">아직 학습 기록이 없습니다.</div>`;
+
+  app.innerHTML = `
+    ${header('통계', true)}
+    <main>
+      <div class="pillrow">
+        <div class="pill"><div class="n">${TOTAL}</div><div class="l">전체 문장</div></div>
+        <div class="pill"><div class="n">${studied}</div><div class="l">학습 시작</div></div>
+        <div class="pill"><div class="n">${boxCounts[4]}</div><div class="l">박스5 (숙달)</div></div>
+      </div>
+      <div class="pillrow">
+        <div class="pill"><div class="n">${notStarted}</div><div class="l">미학습</div></div>
+        <div class="pill"><div class="n">${state.history.length}</div><div class="l">누적 학습일</div></div>
+        <div class="pill"><div class="n">${Math.round((boxCounts[4]/Math.max(1,studied))*100)}%</div><div class="l">숙달 비율</div></div>
+      </div>
+      <div class="section-title">최근 학습 기록</div>
+      <div class="histlist">${histHtml}</div>
+    </main>
+  `;
+}
+
+function renderSettings(){
+  app.innerHTML = `
+    ${header('설정', true)}
+    <main>
+      <div class="settingrow">
+        <div class="label">음성 읽기 속도</div>
+        <div class="desc">학습 화면에서 재생 버튼(▶)을 눌렀을 때 읽는 속도입니다.</div>
+        <div class="segbtns">
+          <button class="segbtn ${state.voice.rate===0.75?'sel':''}" onclick="state.voice.rate=0.75;save();renderSettings()">느리게</button>
+          <button class="segbtn ${state.voice.rate===1?'sel':''}" onclick="state.voice.rate=1;save();renderSettings()">보통</button>
+          <button class="segbtn ${state.voice.rate===1.25?'sel':''}" onclick="state.voice.rate=1.25;save();renderSettings()">빠르게</button>
+        </div>
+      </div>
+      <div class="settingrow">
+        <div class="label">자동 음성 재생</div>
+        <div class="desc">정답을 확인할 때 영어 문장을 자동으로 읽어줍니다.</div>
+        <div class="switch ${state.voice.auto?'on':''}" onclick="state.voice.auto=!state.voice.auto;save();renderSettings()"><div class="knob"></div></div>
+      </div>
+      <div class="settingrow">
+        <div class="label">데이터 내보내기</div>
+        <div class="desc">현재 학습 진행 상황을 JSON 파일로 저장합니다. 기기를 바꾸거나 백업할 때 사용하세요.</div>
+        <button class="btn primary" onclick="exportData()">JSON으로 내보내기</button>
+      </div>
+      <div class="settingrow">
+        <div class="label">데이터 가져오기</div>
+        <div class="desc">이전에 내보낸 JSON 파일 내용을 붙여넣고 불러오세요. 현재 진행 상황을 덮어씁니다.</div>
+        <textarea class="jsonbox" id="importBox" placeholder="여기에 JSON 내용을 붙여넣으세요"></textarea>
+        <button class="btn primary" onclick="importData()">가져오기</button>
+      </div>
+      <div class="settingrow">
+        <div class="label">학습 시작 지점 변경</div>
+        <div class="desc">새 문장을 몇 번째부터 시작할지 지정합니다. (현재: ${state.cursor+1}번째, 전체 ${TOTAL}개)</div>
+        <input type="number" id="cursorInput" min="1" max="${TOTAL}" value="${state.cursor+1}">
+        <button class="btn ghost" onclick="setCursor()">적용</button>
+      </div>
+      <div class="settingrow">
+        <div class="label">진행 상황 초기화</div>
+        <div class="desc">모든 학습 기록과 박스 상태가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+        <button class="btn warn" onclick="resetAll()">전체 초기화</button>
+      </div>
+    </main>
+  `;
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `giu-leitner-backup-${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('JSON 파일로 내보냈습니다.');
+}
+
+function applyImportedJSON(text){
+  try{
+    const parsed = JSON.parse(text);
+    if(typeof parsed.cursor !== 'number' || typeof parsed.cards !== 'object'){ throw new Error('형식 오류'); }
+    state = Object.assign(defaultState(), parsed);
+    state.voice = Object.assign(defaultState().voice, parsed.voice||{});
+    save();
+    showToast('학습 진도를 불러왔습니다.');
+    return true;
+  }catch(e){
+    showToast('올바른 백업 파일이 아닙니다.');
+    return false;
+  }
+}
+
+function importData(){
+  const box = document.getElementById('importBox');
+  if(applyImportedJSON(box.value)){ route='home'; render(); }
+}
+
+function triggerHomeImport(){
+  document.getElementById('homeImportInput').click();
+}
+function handleHomeImportFile(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    if(applyImportedJSON(e.target.result)){ route='home'; render(); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function setCursor(){
+  const v = parseInt(document.getElementById('cursorInput').value, 10);
+  if(isNaN(v) || v<1 || v>TOTAL){ showToast('1~'+TOTAL+' 사이의 값을 입력하세요.'); return; }
+  state.cursor = v-1;
+  save();
+  showToast('시작 지점이 변경되었습니다.');
+  renderSettings();
+}
+
+function resetAll(){
+  if(!confirm('정말 모든 학습 기록을 초기화할까요? 되돌릴 수 없습니다.')) return;
+  state = defaultState();
+  save();
+  showToast('초기화되었습니다.');
+  goHome();
+}
+
+function escapeHtml(str){
+  return str.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+}
+
+render();
+</script>
+</body>
+</html>
